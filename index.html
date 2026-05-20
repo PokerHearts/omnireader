@@ -918,6 +918,194 @@
       border-radius: 2px;
     }
 
+    /* Superscript reference styling */
+    .ref-sup {
+      font-size: 0.65em;
+      vertical-align: super;
+      line-height: 0;
+      color: var(--accent-color);
+      font-weight: 600;
+      cursor: default;
+      margin-left: 1px;
+    }
+
+    /* Dictionary Panel */
+    .dict-panel {
+      position: fixed;
+      right: -400px;
+      top: 0;
+      width: 380px;
+      height: 100vh;
+      background-color: var(--bg-secondary);
+      border-left: 1px solid var(--border-color);
+      box-shadow: -8px 0 30px rgba(0,0,0,0.12);
+      z-index: 500;
+      display: flex;
+      flex-direction: column;
+      transition: right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow: hidden;
+    }
+    .dict-panel.open {
+      right: 0;
+    }
+    .dict-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border-color);
+      flex-shrink: 0;
+    }
+    .dict-header-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-secondary);
+      font-weight: 700;
+    }
+    .dict-close {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 22px;
+      cursor: pointer;
+      padding: 4px;
+      line-height: 1;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+    .dict-close:hover {
+      background: var(--accent-light);
+      color: var(--accent-color);
+    }
+    .dict-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+    }
+    .dict-word {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+      font-family: var(--font-serif, 'Lora', Georgia, serif);
+    }
+    .dict-phonetic {
+      font-size: 15px;
+      color: var(--accent-color);
+      margin-bottom: 20px;
+      font-style: italic;
+    }
+    .dict-phonetic-audio {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      margin-left: 8px;
+      color: var(--accent-color);
+      opacity: 0.8;
+      transition: opacity 0.2s;
+    }
+    .dict-phonetic-audio:hover {
+      opacity: 1;
+    }
+    .dict-pos {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--accent-color);
+      margin-top: 20px;
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid var(--accent-light);
+    }
+    .dict-def {
+      font-size: 15px;
+      color: var(--text-primary);
+      line-height: 1.7;
+      margin-bottom: 10px;
+      padding-left: 16px;
+      position: relative;
+    }
+    .dict-def::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 8px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent-color);
+      opacity: 0.5;
+    }
+    .dict-example {
+      font-size: 13px;
+      color: var(--text-secondary);
+      font-style: italic;
+      padding-left: 16px;
+      margin-bottom: 12px;
+      line-height: 1.5;
+    }
+    .dict-synonym-group {
+      margin-top: 8px;
+      padding-left: 16px;
+    }
+    .dict-synonym-label {
+      font-size: 11px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+    .dict-synonym-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .dict-synonym-pill {
+      font-size: 12px;
+      padding: 3px 10px;
+      background: var(--accent-light);
+      color: var(--accent-color);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .dict-synonym-pill:hover {
+      background: var(--accent-color);
+      color: #fff;
+      transform: scale(1.05);
+    }
+    .dict-loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding-top: 80px;
+      color: var(--text-secondary);
+    }
+    .dict-loading .spinner {
+      width: 32px;
+      height: 32px;
+      border-width: 3px;
+    }
+    .dict-not-found {
+      text-align: center;
+      padding-top: 60px;
+      color: var(--text-secondary);
+    }
+    .dict-not-found-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.4;
+    }
+    .dict-not-found-msg {
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
     /* Keyframe Animations */
     @keyframes spin {
       to { transform: rotate(360deg); }
@@ -1075,6 +1263,7 @@
                     <tr><td>Size Up:</td><td align="right"><span class="shortcut-key">Z</span></td></tr>
                     <tr><td>Size Down:</td><td align="right"><span class="shortcut-key">X</span></td></tr>
                     <tr><td>Reset Size:</td><td align="right"><span class="shortcut-key">C</span></td></tr>
+                    <tr><td>Dictionary:</td><td align="right"><span class="shortcut-key">D</span></td></tr>
                   </table>
                 </div>
               </div>
@@ -1121,6 +1310,20 @@
         </div>
       </div>
     </main>
+
+    <!-- Dictionary Slide Panel -->
+    <aside class="dict-panel" id="dict-panel">
+      <div class="dict-header">
+        <span class="dict-header-title">Dictionary</span>
+        <button class="dict-close" id="dict-close">&times;</button>
+      </div>
+      <div class="dict-body" id="dict-body">
+        <div class="dict-not-found">
+          <div class="dict-not-found-icon">📖</div>
+          <div class="dict-not-found-msg">Double-click any word<br>to look it up</div>
+        </div>
+      </div>
+    </aside>
 
   </div>
 
@@ -1817,7 +2020,7 @@
             inList = false;
           }
           const slug = `heading-${headingIndex}`;
-          contentHtml += `<h${b.level} id="${slug}" class="reader-heading h${b.level}">${escapeHtml(b.text)}</h${b.level}>\n`;
+          contentHtml += `<h${b.level} id="${slug}" class="reader-heading h${b.level}">${formatTextWithRefs(escapeHtml(b.text))}</h${b.level}>\n`;
           headingIndex++;
         } else if (b.type === "list-item") {
           const currentType = /^\d/.test(b.marker) ? "ol" : "ul";
@@ -1826,13 +2029,13 @@
             listType = currentType;
             contentHtml += `<${listType} class="reader-list">\n`;
           }
-          contentHtml += `  <li>${escapeHtml(b.text)}</li>\n`;
+          contentHtml += `  <li>${formatTextWithRefs(escapeHtml(b.text))}</li>\n`;
         } else if (b.type === "paragraph") {
           if (inList) {
             contentHtml += `</${listType}>\n`;
             inList = false;
           }
-          contentHtml += `<p class="reader-paragraph">${escapeHtml(b.text)}</p>\n`;
+          contentHtml += `<p class="reader-paragraph">${formatTextWithRefs(escapeHtml(b.text))}</p>\n`;
         }
       }
       if (inList) {
@@ -1995,6 +2198,9 @@
       if (key === 'z') btnSizeInc.click();
       if (key === 'x') btnSizeDec.click();
       if (key === 'c') btnSizeReset.click();
+      if (key === 'd') {
+        dictPanel.classList.toggle('open');
+      }
     });
 
     // 8. Text Search indexing and matches
@@ -2084,6 +2290,155 @@
         
         resultsList.appendChild(li);
       });
+    }
+
+    // ===== SUPERSCRIPT REFERENCE FORMATTER =====
+    // Converts trailing superscript numbers and unicode superscripts into <sup> tags
+    function formatTextWithRefs(text) {
+      // Match unicode superscript digits: ⁰¹²³⁴⁵⁶⁷⁸⁹
+      text = text.replace(/([\u2070\u00B9\u00B2\u00B3\u2074-\u2079]+)/g, '<sup class="ref-sup">$1</sup>');
+      // Match trailing digit(s) after a word/punctuation that look like footnote refs (e.g., "word1" or "word.2")
+      text = text.replace(/([a-zA-Z.,:;!?\)\]\&quot;\&#039;])([0-9]{1,3})(?=\s|$|[.,;:!?)])/g, function(match, before, num) {
+        const n = parseInt(num);
+        if (n >= 1 && n <= 200) {
+          return before + '<sup class="ref-sup">' + num + '</sup>';
+        }
+        return match;
+      });
+      return text;
+    }
+
+    // ===== DICTIONARY PANEL =====
+    const dictPanel = document.getElementById('dict-panel');
+    const dictClose = document.getElementById('dict-close');
+    const dictBody = document.getElementById('dict-body');
+
+    dictClose.addEventListener('click', () => {
+      dictPanel.classList.remove('open');
+    });
+
+    // Close dictionary when clicking outside it
+    document.addEventListener('click', (e) => {
+      if (dictPanel.classList.contains('open') && !dictPanel.contains(e.target) && !articleContent.contains(e.target)) {
+        dictPanel.classList.remove('open');
+      }
+    });
+
+    // Double-click to look up a word
+    articleContent.addEventListener('dblclick', async (e) => {
+      const selection = window.getSelection();
+      let word = selection.toString().trim();
+      // Clean the word: remove punctuation, superscripts
+      word = word.replace(/[^a-zA-Z'-]/g, '');
+      if (!word || word.length < 2 || word.length > 40) return;
+
+      dictPanel.classList.add('open');
+      dictBody.innerHTML = `
+        <div class="dict-loading">
+          <div class="spinner"></div>
+          <div>Looking up <strong>${word}</strong>...</div>
+        </div>`;
+
+      try {
+        const resp = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word.toLowerCase())}`);
+        if (!resp.ok) throw new Error('Not found');
+        const data = await resp.json();
+        renderDictResult(data[0]);
+      } catch (err) {
+        dictBody.innerHTML = `
+          <div class="dict-not-found">
+            <div class="dict-not-found-icon">🔍</div>
+            <div style="font-size:22px;font-weight:700;margin-bottom:8px;color:var(--text-primary)">${word}</div>
+            <div class="dict-not-found-msg">No definition found for this word.<br>Try a different word.</div>
+          </div>`;
+      }
+    });
+
+    function renderDictResult(entry) {
+      let html = '';
+
+      // Word title
+      html += `<div class="dict-word">${entry.word}</div>`;
+
+      // Phonetic + audio
+      let phoneticText = '';
+      let audioUrl = '';
+      if (entry.phonetics) {
+        for (const p of entry.phonetics) {
+          if (p.text && !phoneticText) phoneticText = p.text;
+          if (p.audio && !audioUrl) audioUrl = p.audio;
+        }
+      }
+      if (entry.phonetic && !phoneticText) phoneticText = entry.phonetic;
+
+      html += `<div class="dict-phonetic">`;
+      if (phoneticText) html += phoneticText;
+      if (audioUrl) {
+        html += ` <span class="dict-phonetic-audio" onclick="new Audio('${audioUrl}').play()" title="Listen">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 8.5v7a4.49 4.49 0 0 0 2.5-3.5zM14 3.23v2.06a7.007 7.007 0 0 1 0 13.42v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+          Play
+        </span>`;
+      }
+      html += `</div>`;
+
+      // Meanings
+      if (entry.meanings) {
+        for (const meaning of entry.meanings) {
+          html += `<div class="dict-pos">${meaning.partOfSpeech}</div>`;
+          if (meaning.definitions) {
+            for (const def of meaning.definitions.slice(0, 4)) {
+              html += `<div class="dict-def">${def.definition}</div>`;
+              if (def.example) {
+                html += `<div class="dict-example">"${def.example}"</div>`;
+              }
+            }
+          }
+          // Synonyms
+          if (meaning.synonyms && meaning.synonyms.length > 0) {
+            html += `<div class="dict-synonym-group">`;
+            html += `<div class="dict-synonym-label">Synonyms</div>`;
+            html += `<div class="dict-synonym-pills">`;
+            for (const syn of meaning.synonyms.slice(0, 8)) {
+              html += `<span class="dict-synonym-pill" onclick="lookupWord('${syn}')">${syn}</span>`;
+            }
+            html += `</div></div>`;
+          }
+          // Antonyms
+          if (meaning.antonyms && meaning.antonyms.length > 0) {
+            html += `<div class="dict-synonym-group">`;
+            html += `<div class="dict-synonym-label">Antonyms</div>`;
+            html += `<div class="dict-synonym-pills">`;
+            for (const ant of meaning.antonyms.slice(0, 6)) {
+              html += `<span class="dict-synonym-pill" onclick="lookupWord('${ant}')">${ant}</span>`;
+            }
+            html += `</div></div>`;
+          }
+        }
+      }
+
+      dictBody.innerHTML = html;
+    }
+
+    // Click on a synonym/antonym pill to look it up
+    async function lookupWord(word) {
+      dictBody.innerHTML = `
+        <div class="dict-loading">
+          <div class="spinner"></div>
+          <div>Looking up <strong>${word}</strong>...</div>
+        </div>`;
+      try {
+        const resp = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word.toLowerCase())}`);
+        if (!resp.ok) throw new Error('Not found');
+        const data = await resp.json();
+        renderDictResult(data[0]);
+      } catch (err) {
+        dictBody.innerHTML = `
+          <div class="dict-not-found">
+            <div class="dict-not-found-icon">🔍</div>
+            <div style="font-size:22px;font-weight:700;margin-bottom:8px;color:var(--text-primary)">${word}</div>
+            <div class="dict-not-found-msg">No definition found for this word.</div>
+          </div>`;
+      }
     }
   </script>
 </body>
