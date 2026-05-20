@@ -3,20 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>OmniReader - Universal Document to HTML Reader Converter</title>
+  <title>OmniReader - Universal Local HTML Reader</title>
   
   <!-- Premium Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
   
-  <!-- CDNs for client-side parsing libraries -->
+  <!-- Client-side parsing libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
   
   <style>
-    /* Premium Glassmorphic Styling */
+    /* Global CSS variables & Reset */
     :root {
       --bg-gradient: linear-gradient(135deg, #fbfaf8 0%, #f3eee7 100%);
       --card-bg: rgba(255, 255, 255, 0.7);
@@ -44,7 +44,9 @@
       align-items: center;
       justify-content: center;
       padding: 24px;
-      overflow-x: hidden;
+      overflow: hidden;
+      position: relative;
+      transition: background 0.3s ease;
     }
 
     /* Background decorative blobs */
@@ -54,6 +56,7 @@
       filter: blur(100px);
       z-index: -1;
       opacity: 0.12;
+      transition: opacity 0.5s ease;
     }
     .blob-1 {
       top: -100px;
@@ -70,6 +73,7 @@
       background-color: #f7e0e5;
     }
 
+    /* Upload Dashboard Panel Container */
     .container {
       width: 100%;
       max-width: 720px;
@@ -80,6 +84,8 @@
       backdrop-filter: blur(20px);
       box-shadow: 0 20px 50px rgba(180, 150, 155, 0.15);
       position: relative;
+      z-index: 5;
+      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease;
     }
 
     .header {
@@ -272,71 +278,644 @@
       text-align: center;
     }
 
-    /* Success Overlay */
-    .success-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(251, 248, 245, 0.98);
-      border-radius: 24px;
+    /* ----------------------------------------------------
+       INTEGRATED SPAS READER LAYOUT & TRANSITIONS
+       ---------------------------------------------------- */
+    
+    body.reader-active {
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
+      justify-content: flex-start;
+      padding: 0;
+      height: 100vh;
+      width: 100vw;
+      background: transparent;
+    }
+
+    body.reader-active .container {
+      display: none !important;
+      opacity: 0;
+      transform: scale(0.95);
+    }
+
+    body.reader-active .blob {
+      opacity: 0.03;
+    }
+
+    #reader-panel {
+      --bg-primary: #fcfbf9;
+      --bg-secondary: #f4f3f0;
+      --bg-sidebar: #f5f4f0;
+      --text-primary: #2c2a29;
+      --text-secondary: #6e6b64;
+      --accent-color: #bfa15f;
+      --accent-light: rgba(191, 161, 95, 0.1);
+      --border-color: #e5e3de;
+      --scrollbar-thumb: #d0cdc5;
+      --font-serif: 'Lora', Georgia, serif;
+      --font-sans: 'Inter', system-ui, sans-serif;
+      --font-current: var(--font-serif);
+      --font-size-base: 18px;
+      --line-height-base: 1.75;
+      --sidebar-width: 320px;
+      
       display: none;
+      flex: 1;
+      flex-direction: row;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    }
+
+    #reader-panel[data-theme="dark"] {
+      --bg-primary: #121212;
+      --bg-secondary: #1a1a1a;
+      --bg-sidebar: #181818;
+      --text-primary: #e0e0e0;
+      --text-secondary: #9a9a9a;
+      --accent-color: #e5c158;
+      --accent-light: rgba(229, 193, 88, 0.15);
+      --border-color: #2d2d2d;
+      --scrollbar-thumb: #444444;
+    }
+
+    #reader-panel[data-theme="sepia"] {
+      --bg-primary: #f4ecd8;
+      --bg-secondary: #eae0c9;
+      --bg-sidebar: #eae0c9;
+      --text-primary: #433422;
+      --text-secondary: #705e4c;
+      --accent-color: #8c6239;
+      --accent-light: rgba(140, 98, 57, 0.1);
+      --border-color: #dfd4b7;
+      --scrollbar-thumb: #cabfa3;
+    }
+
+    #reader-panel[data-theme="velvet"] {
+      --bg-primary: #1d070b;
+      --bg-secondary: #290a10;
+      --bg-sidebar: #290a10;
+      --text-primary: #f5e8ea;
+      --text-secondary: #cba9af;
+      --accent-color: #e33e5a;
+      --accent-light: rgba(227, 62, 90, 0.15);
+      --border-color: #3d141b;
+      --scrollbar-thumb: #541d26;
+    }
+
+    /* Scrollbars inside reader */
+    #reader-panel ::-webkit-scrollbar { width: 8px; height: 8px; }
+    #reader-panel ::-webkit-scrollbar-track { background: transparent; }
+    #reader-panel ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 4px; }
+    #reader-panel ::-webkit-scrollbar-thumb:hover { background: var(--accent-color); }
+
+    /* Sidebar collapsible style */
+    .sidebar {
+      width: var(--sidebar-width);
+      background-color: var(--bg-sidebar);
+      border-right: 1px solid var(--border-color);
+      height: 100%;
+      display: flex;
       flex-direction: column;
+      flex-shrink: 0;
+      z-index: 100;
+      transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow: hidden;
+    }
+
+    .sidebar.collapsed {
+      margin-left: calc(-1 * var(--sidebar-width));
+      border-right: none;
+    }
+
+    .sidebar-header {
+      padding: 24px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .sidebar-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .sidebar-subtitle {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.4;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .toc-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 0;
+    }
+
+    .toc-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-secondary);
+      font-weight: 600;
+      margin-bottom: 12px;
+      padding-left: 24px;
+    }
+
+    .toc-list {
+      list-style: none;
+    }
+
+    /* Nested accordion TOC subheadings */
+    .toc-item-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .toc-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px 8px 24px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+      position: relative;
+    }
+
+    .toc-item:hover {
+      background-color: var(--bg-secondary);
+    }
+
+    .toc-item.active {
+      background-color: var(--accent-light);
+    }
+
+    .toc-item.active a {
+      color: var(--accent-color);
+      font-weight: 600;
+    }
+
+    .toc-item a {
+      flex: 1;
+      display: block;
+      color: var(--text-primary);
+      text-decoration: none;
+      font-size: 14px;
+      line-height: 1.4;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .toc-toggle-btn {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
       align-items: center;
       justify-content: center;
-      gap: 16px;
-      padding: 40px;
-      z-index: 10;
-      animation: fadeIn 0.4s ease forwards;
+      padding: 4px;
+      border-radius: 4px;
+      transition: all 0.2s ease;
     }
 
-    .success-icon {
-      width: 72px;
-      height: 72px;
-      fill: #22c55e;
-      margin-bottom: 8px;
+    .toc-toggle-btn:hover {
+      background-color: var(--border-color);
+      color: var(--accent-color);
     }
 
-    .success-title {
-      font-size: 24px;
-      font-weight: 700;
+    .toc-toggle-btn svg {
+      width: 14px;
+      height: 14px;
+      fill: currentColor;
+      transition: transform 0.2s ease;
     }
 
-    .success-desc {
-      font-size: 14px;
-      color: var(--text-secondary);
-      text-align: center;
-      margin-bottom: 16px;
+    /* Rotate chevron when expanded */
+    .toc-item-group.expanded .toc-toggle-btn svg {
+      transform: rotate(90deg);
     }
 
-    .btn-row {
-      display: flex;
-      gap: 12px;
-      width: 100%;
-      max-width: 380px;
+    .toc-dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background-color: var(--text-secondary);
+      margin: 0 9px;
+      opacity: 0.4;
     }
 
-    .btn-secondary {
+    .toc-sublist {
+      list-style: none;
+      padding-left: 20px;
+      display: none;
+      border-left: 1px solid var(--border-color);
+      margin-left: 31px;
+    }
+
+    .toc-item-group.expanded .toc-sublist {
+      display: block;
+    }
+
+    /* Main view container */
+    .main-content {
       flex: 1;
-      background-color: rgba(0, 0, 0, 0.03);
-      border: 1px solid rgba(0, 0, 0, 0.08);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      position: relative;
+    }
+    
+    .top-navbar {
+      height: 64px;
+      border-bottom: 1px solid var(--border-color);
+      background-color: var(--bg-primary);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      position: sticky;
+      top: 0;
+      z-index: 90;
+    }
+
+    .navbar-left, .navbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .nav-btn {
+      background: none;
+      border: 1px solid var(--border-color);
       color: var(--text-primary);
-      padding: 12px;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
+      padding: 8px 12px;
+      border-radius: 6px;
       cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .nav-btn:hover {
+      background-color: var(--bg-secondary);
+      border-color: var(--accent-color);
+      color: var(--accent-color);
+    }
+    
+    .nav-btn.danger:hover {
+      border-color: #ef4444;
+      color: #ef4444;
+      background-color: rgba(239, 68, 68, 0.05);
+    }
+
+    .nav-btn svg {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
+    }
+
+    .search-container {
+      position: relative;
+      width: 240px;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 8px 12px 8px 36px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background-color: var(--bg-secondary);
+      color: var(--text-primary);
+      font-size: 14px;
+      outline: none;
+    }
+
+    .search-input:focus {
+      border-color: var(--accent-color);
+      background-color: var(--bg-primary);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 16px;
+      height: 16px;
+      fill: var(--text-secondary);
+    }
+
+    /* AppearanceDropdown menu inside reader */
+    .settings-dropdown {
+      position: relative;
+    }
+
+    .dropdown-menu {
+      position: absolute;
+      right: 0;
+      top: 45px;
+      background-color: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 16px;
+      width: 280px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      display: none;
+      flex-direction: column;
+      gap: 16px;
+      z-index: 110;
+    }
+
+    .dropdown-menu.show {
+      display: flex;
+    }
+
+    .settings-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .settings-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    .settings-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .settings-option {
+      flex: 1;
+      padding: 6px 12px;
+      border: 1px solid var(--border-color);
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
       text-align: center;
       transition: all 0.2s ease;
     }
 
-    .btn-secondary:hover {
-      background-color: rgba(0, 0, 0, 0.07);
-      border-color: rgba(0, 0, 0, 0.15);
+    .settings-option:hover, .settings-option.active {
+      border-color: var(--accent-color);
+      color: var(--accent-color);
+      background-color: var(--accent-light);
     }
 
-    /* Animations */
+    .theme-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+
+    .theme-btn {
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 10px 4px;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 500;
+      text-align: center;
+    }
+
+    .theme-btn[data-theme-val="light"] { background-color: #fcfbf9; color: #2c2a29; }
+    .theme-btn[data-theme-val="dark"] { background-color: #121212; color: #e0e0e0; }
+    .theme-btn[data-theme-val="sepia"] { background-color: #f4ecd8; color: #433422; }
+    .theme-btn[data-theme-val="velvet"] { background-color: #1d070b; color: #f5e8ea; }
+    .theme-btn.active { outline: 2px solid var(--accent-color); outline-offset: 1px; }
+
+    .shortcut-legend {
+      border-top: 1px solid var(--border-color);
+      padding-top: 10px;
+      margin-top: 4px;
+      font-size: 11px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .shortcut-legend table {
+      width: 100%;
+    }
+    .shortcut-legend td {
+      padding: 2px 0;
+    }
+    .shortcut-key {
+      font-weight: 600;
+      color: var(--accent-color);
+    }
+
+    .progress-bar-container {
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background-color: transparent;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0;
+      background-color: var(--accent-color);
+    }
+
+    /* Cover Page design inside Reader canvas */
+    .book-cover {
+      max-width: 750px;
+      margin: 60px auto 40px auto;
+      padding: 0 24px;
+      text-align: center;
+      border-bottom: 2px solid var(--border-color);
+      padding-bottom: 40px;
+    }
+
+    .book-title {
+      font-family: var(--font-sans);
+      font-size: 42px;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+    }
+
+    .book-author {
+      font-size: 20px;
+      color: var(--accent-color);
+      font-weight: 500;
+      margin-bottom: 24px;
+    }
+
+    .book-metadata {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Content Area Styles */
+    .reader-canvas {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 0 100px 0;
+      scroll-behavior: smooth;
+    }
+
+    .reader-container {
+      max-width: 750px;
+      margin: 0 auto;
+      padding: 0 24px;
+      font-family: var(--font-current);
+      font-size: var(--font-size-base);
+      line-height: var(--line-height-base);
+      text-align: justify;
+    }
+
+    .reader-heading {
+      font-family: var(--font-sans);
+      color: var(--text-primary);
+      margin-top: 48px;
+      margin-bottom: 18px;
+      line-height: 1.3;
+    }
+
+    .reader-heading.h1 {
+      font-size: 32px;
+      font-weight: 800;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 12px;
+      margin-top: 72px;
+    }
+
+    .reader-heading.h2 {
+      font-size: 22px;
+      font-weight: 700;
+      border-left: 4px solid var(--accent-color);
+      padding-left: 12px;
+      margin-top: 54px;
+      text-transform: uppercase;
+    }
+
+    .reader-heading.h3 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-top: 36px;
+      color: var(--accent-color);
+    }
+    
+    .reader-paragraph {
+      margin-bottom: 20px;
+      color: var(--text-primary);
+    }
+
+    .reader-list {
+      margin-bottom: 20px;
+      padding-left: 32px;
+    }
+
+    .reader-list li {
+      margin-bottom: 8px;
+      color: var(--text-primary);
+    }
+
+    /* Search panel results */
+    .search-results-panel {
+      position: fixed;
+      right: 24px;
+      top: 75px;
+      width: 320px;
+      background-color: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+      z-index: 200;
+      display: none;
+      flex-direction: column;
+      max-height: 480px;
+    }
+
+    .search-results-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .close-results {
+      cursor: pointer;
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 16px;
+    }
+
+    .search-results-list {
+      overflow-y: auto;
+      list-style: none;
+      padding: 8px;
+    }
+
+    .search-result-item {
+      padding: 10px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+
+    .search-result-item:hover {
+      background-color: var(--bg-primary);
+    }
+
+    .search-result-snippet {
+      color: var(--text-secondary);
+      margin-top: 4px;
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .search-result-title {
+      font-weight: 600;
+      color: var(--accent-color);
+    }
+
+    mark {
+      background-color: rgba(227, 62, 90, 0.35);
+      color: inherit;
+      border-radius: 2px;
+    }
+
+    /* Keyframe Animations */
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
@@ -348,12 +927,12 @@
 </head>
 <body>
 
+  <!-- Decorative blur blobs -->
   <div class="blob blob-1"></div>
   <div class="blob blob-2"></div>
 
-  <div class="container">
-    
-    <!-- Upload Main Dashboard -->
+  <!-- UPLOAD DASHBOARD -->
+  <div class="container" id="upload-container">
     <div id="main-panel">
       <div class="header">
         <h1 class="title">OmniReader</h1>
@@ -361,6 +940,7 @@
       </div>
 
       <input type="file" id="file-input" style="display: none;" accept=".pdf,.epub,.docx,.txt">
+      
       <!-- Drag & Drop Area -->
       <div class="upload-zone" id="upload-zone">
         <svg class="upload-icon" viewBox="0 0 24 24">
@@ -390,7 +970,7 @@
         
         <button class="btn-convert" id="btn-convert">
           <svg style="width:20px;height:20px;fill:currentColor" viewBox="0 0 24 24"><path d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"/></svg>
-          <span>Convert & Export Reader</span>
+          <span>Open Book Reader</span>
         </button>
       </div>
     </div>
@@ -401,20 +981,143 @@
       <div class="progress-stage" id="progress-stage">Reading file...</div>
       <div class="progress-sub" id="progress-sub">Preparing data structures...</div>
     </div>
+  </div>
 
-    <!-- Success Done Dialog -->
-    <div class="success-overlay" id="success-panel">
-      <svg class="success-icon" viewBox="0 0 24 24">
-        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-      </svg>
-      <div class="success-title">Conversion Complete!</div>
-      <div class="success-desc" id="success-desc">Your self-contained local HTML e-reader file has been generated and downloaded.</div>
-      
-      <div class="btn-row">
-        <button class="btn-convert" id="btn-open">Open Reader Now</button>
-        <button class="btn-secondary" id="btn-reset">Convert Another</button>
+  <!-- INTEGRATED SPA READER PANEL -->
+  <div id="reader-panel">
+    
+    <!-- Sidebar / Tree TOC -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-title" id="side-book-title">Book Title</div>
+        <div class="sidebar-subtitle" id="side-book-author">By Author</div>
       </div>
-    </div>
+      <div class="toc-container" id="toc-container">
+        <!-- Injected Nested Table of Contents -->
+      </div>
+    </aside>
+
+    <!-- Main View Area -->
+    <main class="main-content">
+      <header class="top-navbar">
+        <div class="navbar-left">
+          <button class="nav-btn" id="sidebar-toggle" title="Toggle Sidebar">
+            <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+            <span>Contents</span>
+          </button>
+          
+          <button class="nav-btn danger" id="btn-close-reader" title="Upload New Book">
+            <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+            <span>Upload New</span>
+          </button>
+        </div>
+
+        <div class="navbar-left">
+          <div class="search-container">
+            <svg class="search-icon" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+            <input type="search" class="search-input" id="search-input" placeholder="Search book text...">
+          </div>
+        </div>
+        
+        <div class="navbar-right">
+          <div class="settings-dropdown">
+            <button class="nav-btn" id="settings-toggle">
+              <svg viewBox="0 0 24 24"><path d="M9 4v3h5v12h3V7h5V4H9zm-6 8h3v7h3v-7h3V9H3v3z"/></svg>
+              <span>Appearance</span>
+            </button>
+            
+            <div class="dropdown-menu" id="settings-menu">
+              <div class="settings-group">
+                <div class="settings-label">Theme</div>
+                <div class="theme-grid">
+                  <div class="theme-btn active" data-theme-val="light">Light</div>
+                  <div class="theme-btn" data-theme-val="dark">Dark</div>
+                  <div class="theme-btn" data-theme-val="sepia">Sepia</div>
+                  <div class="theme-btn" data-theme-val="velvet">Velvet</div>
+                </div>
+              </div>
+              
+              <div class="settings-group">
+                <div class="settings-label">Typography</div>
+                <div class="settings-row">
+                  <button class="settings-option active" id="btn-font-serif">Serif</button>
+                  <button class="settings-option" id="btn-font-sans">Sans</button>
+                </div>
+              </div>
+              
+              <div class="settings-group">
+                <div class="settings-label">Size</div>
+                <div class="settings-row">
+                  <button class="settings-option" id="btn-size-dec">A-</button>
+                  <button class="settings-option" id="btn-size-reset">Default</button>
+                  <button class="settings-option" id="btn-size-inc">A+</button>
+                </div>
+              </div>
+              
+              <div class="settings-group">
+                <div class="settings-label">Line Spacing</div>
+                <div class="settings-row">
+                  <button class="settings-option" id="btn-height-compact">Compact</button>
+                  <button class="settings-option active" id="btn-height-normal">Normal</button>
+                  <button class="settings-option" id="btn-height-loose">Loose</button>
+                </div>
+              </div>
+
+              <!-- Shortcut legend inside dropdown -->
+              <div class="settings-group">
+                <div class="settings-label">Shortcuts</div>
+                <div class="shortcut-legend">
+                  <table>
+                    <tr><td>Toggle Theme:</td><td align="right"><span class="shortcut-key">T</span></td></tr>
+                    <tr><td>Size Up:</td><td align="right"><span class="shortcut-key">Z</span></td></tr>
+                    <tr><td>Size Down:</td><td align="right"><span class="shortcut-key">X</span></td></tr>
+                    <tr><td>Reset Size:</td><td align="right"><span class="shortcut-key">C</span></td></tr>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="progress-bar-container">
+          <div class="progress-bar" id="progress-bar"></div>
+        </div>
+      </header>
+      
+      <!-- Search results sidebar overlay -->
+      <div class="search-results-panel" id="results-panel">
+        <div class="search-results-header">
+          <span>Search Results (<span id="results-count">0</span>)</span>
+          <button class="close-results" id="close-results">&times;</button>
+        </div>
+        <ul class="search-results-list" id="results-list"></ul>
+      </div>
+      
+      <!-- Reading canvas -->
+      <div class="reader-canvas" id="reader-canvas">
+        <div class="book-cover">
+          <h1 class="book-title" id="cover-book-title">Book Title</h1>
+          <div class="book-author" id="cover-book-author">By Author</div>
+          
+          <div class="book-metadata">
+            <div class="meta-item">
+              <svg style="width:14px;height:14px;fill:currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+              <span>Original Pages: <span id="cover-pages">1</span></span>
+            </div>
+            <div class="meta-item">
+              <svg style="width:14px;height:14px;fill:currentColor" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>
+              <span>Est. Reading: <span id="cover-reading-time">1</span> mins</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="reader-container" id="reader-container">
+          <article id="article-content">
+            <!-- Reader text content injected here -->
+          </article>
+        </div>
+      </div>
+    </main>
 
   </div>
 
@@ -422,9 +1125,12 @@
     // State Management
     let uploadedFile = null;
     let fileArrayBuffer = null;
-    let generatedHtmlContent = null;
-    let generatedFilename = "";
-
+    let currentTheme = 'light';
+    let currentFontSize = 18;
+    let currentLineHeight = 1.75;
+    
+    // Core DOM references
+    const uploadContainer = document.getElementById('upload-container');
     const uploadZone = document.getElementById('upload-zone');
     const fileInput = document.getElementById('file-input');
     const detailsForm = document.getElementById('details-form');
@@ -435,12 +1141,42 @@
     const progressPanel = document.getElementById('progress-panel');
     const progressStage = document.getElementById('progress-stage');
     const progressSub = document.getElementById('progress-sub');
-    
-    const successPanel = document.getElementById('success-panel');
-    const successDesc = document.getElementById('success-desc');
     const btnConvert = document.getElementById('btn-convert');
-    const btnOpen = document.getElementById('btn-open');
-    const btnReset = document.getElementById('btn-reset');
+
+    // Reader UI DOM references
+    const readerPanel = document.getElementById('reader-panel');
+    const root = document.getElementById('reader-panel');
+    const canvas = document.getElementById('reader-canvas');
+    const articleContent = document.getElementById('article-content');
+    const tocContainer = document.getElementById('toc-container');
+    const progressBar = document.getElementById('progress-bar');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarToggle = document.getElementById('sidebar-toggle');
+    const btnCloseReader = document.getElementById('btn-close-reader');
+    
+    const sideBookTitle = document.getElementById('side-book-title');
+    const sideBookAuthor = document.getElementById('side-book-author');
+    const coverBookTitle = document.getElementById('cover-book-title');
+    const coverBookAuthor = document.getElementById('cover-book-author');
+    const coverPages = document.getElementById('cover-pages');
+    const coverReadingTime = document.getElementById('cover-reading-time');
+    
+    const settingsToggle = document.getElementById('settings-toggle');
+    const settingsMenu = document.getElementById('settings-menu');
+    const btnFontSerif = document.getElementById('btn-font-serif');
+    const btnFontSans = document.getElementById('btn-font-sans');
+    const btnSizeInc = document.getElementById('btn-size-inc');
+    const btnSizeDec = document.getElementById('btn-size-dec');
+    const btnSizeReset = document.getElementById('btn-size-reset');
+    const btnCompact = document.getElementById('btn-height-compact');
+    const btnNormal = document.getElementById('btn-height-normal');
+    const btnLoose = document.getElementById('btn-height-loose');
+    
+    const searchInput = document.getElementById('search-input');
+    const resultsPanel = document.getElementById('results-panel');
+    const resultsList = document.getElementById('results-list');
+    const resultsCount = document.getElementById('results-count');
+    const closeResults = document.getElementById('close-results');
 
     // 1. Drag & Drop Event Handling
     uploadZone.addEventListener('click', () => fileInput.click());
@@ -470,7 +1206,6 @@
       
       // Auto-extract Title from filename
       const titleWithoutExt = file.name.substring(0, file.name.lastIndexOf('.'));
-      // Replace underscores/hyphens with spaces and capitalize words
       const prettyTitle = titleWithoutExt.replace(/[_-]/g, ' ')
         .replace(/\w\S*/g, (w) => w.replace(/^\w/, (c) => c.toUpperCase()));
       
@@ -521,15 +1256,18 @@
           return;
         }
         
-        showProgress("Compiling Premium E-Reader...", "Injecting UI assets and themes...");
-        compileHtmlReader(blocks, title, author, pageCount);
+        showProgress("Formatting E-Reader UI...", "Injecting layout structure...");
         
-        // Auto-download result
-        generatedFilename = title.toLowerCase().replace(/[^a-z0-9]+/g, '_') + '.html';
-        triggerDownload(generatedHtmlContent, generatedFilename);
+        // Compile the tree structured content
+        const compiled = compileHtmlReader(blocks, title, author, pageCount);
         
-        // Show Success panel
-        showSuccess(generatedFilename);
+        // Load into Integrated SPA Reader
+        loadBookIntoReader(title, author, pageCount, compiled.tocHtml, compiled.contentHtml, compiled.readingTime);
+        
+        // Save book details to localStorage so it persists!
+        saveBookToStorage(title, author, pageCount, compiled.tocHtml, compiled.contentHtml, compiled.readingTime);
+        
+        hideProgress();
         
       } catch (err) {
         console.error(err);
@@ -538,23 +1276,7 @@
       }
     });
 
-    btnReset.addEventListener('click', () => {
-      uploadedFile = null;
-      fileArrayBuffer = null;
-      generatedHtmlContent = null;
-      detailsForm.style.display = 'none';
-      uploadLabel.textContent = "Drag & drop your reading file here";
-      successPanel.style.display = 'none';
-    });
-
-    btnOpen.addEventListener('click', () => {
-      if (!generatedHtmlContent) return;
-      const blob = new Blob([generatedHtmlContent], { type: 'text/html' });
-      const url = URL.createObjectURL(blob);
-      window.open(url, '_blank');
-    });
-
-    // 3. UI helpers
+    // 3. UI Helpers
     function showProgress(stage, sub) {
       progressPanel.style.display = 'flex';
       progressStage.textContent = stage;
@@ -565,25 +1287,122 @@
       progressPanel.style.display = 'none';
     }
 
-    function showSuccess(filename) {
-      hideProgress();
-      successPanel.style.display = 'flex';
-      successDesc.innerHTML = `Your e-reader file has been generated as <b>${filename}</b>. Click <b>Open Reader Now</b> to view it instantly, or find it in your downloads folder!`;
+    // 4. Integrated Book Reader Loading & State
+    function loadBookIntoReader(title, author, pageCount, tocHtml, contentHtml, readingTime) {
+      // 1. Set text headers
+      sideBookTitle.textContent = title;
+      sideBookAuthor.textContent = `By ${author}`;
+      coverBookTitle.textContent = title;
+      coverBookAuthor.textContent = `By ${author}`;
+      coverPages.textContent = pageCount;
+      coverReadingTime.textContent = readingTime;
+      
+      // 2. Inject HTML contents
+      tocContainer.innerHTML = tocHtml;
+      articleContent.innerHTML = contentHtml;
+      
+      // 3. Register accordion toggles inside injected TOC
+      document.querySelectorAll('.toc-toggle-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          const group = btn.closest('.toc-item-group');
+          group.classList.toggle('expanded');
+        });
+      });
+
+      document.querySelectorAll('.toc-item a').forEach(link => {
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          const targetId = link.parentElement.getAttribute('data-target');
+          const targetElem = document.getElementById(targetId);
+          if (targetElem) targetElem.scrollIntoView({ behavior: 'smooth' });
+          
+          // Auto-expand H1 chapters when clicked
+          const group = link.closest('.toc-item-group');
+          if (group && group.classList.contains('has-sub')) {
+            group.classList.add('expanded');
+          }
+        });
+      });
+
+      // 4. Setup scroll tracking IntersectionObserver
+      const headings = document.querySelectorAll('.reader-heading');
+      const headingObserver = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const id = entry.target.getAttribute('id');
+            document.querySelectorAll('.toc-item').forEach(item => {
+              if (item.getAttribute('data-target') === id) {
+                item.classList.add('active');
+                item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                
+                // Auto-expand the active section group
+                const group = item.closest('.toc-item-group');
+                if (group) {
+                  document.querySelectorAll('.toc-item-group').forEach(g => {
+                    if (g !== group) g.classList.remove('expanded');
+                  });
+                  group.classList.add('expanded');
+                }
+              } else {
+                item.classList.remove('active');
+              }
+            });
+          }
+        });
+      }, { threshold: 0.1, rootMargin: '0px 0px -70% 0px' });
+
+      headings.forEach(heading => headingObserver.observe(heading));
+
+      // 5. Switch visible Panels
+      document.body.classList.add('reader-active');
+      readerPanel.style.display = 'flex';
+      
+      // Reset scroll position
+      canvas.scrollTop = 0;
     }
 
-    function triggerDownload(content, filename) {
-      const blob = new Blob([content], { type: 'text/html;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+    // "Upload New" functionality
+    btnCloseReader.addEventListener('click', () => {
+      // Clear persistence
+      localStorage.removeItem('reader-saved-book');
+      
+      // Reset upload inputs
+      uploadedFile = null;
+      fileArrayBuffer = null;
+      fileInput.value = "";
+      uploadLabel.textContent = "Drag & drop your reading file here";
+      detailsForm.style.display = 'none';
+      
+      // Hide reader panel, show upload container
+      document.body.classList.remove('reader-active');
+      readerPanel.style.display = 'none';
+    });
+
+    // Local Storage Persistence
+    function saveBookToStorage(title, author, pageCount, tocHtml, contentHtml, readingTime) {
+      try {
+        const bookData = { title, author, pageCount, tocHtml, contentHtml, readingTime };
+        localStorage.setItem('reader-saved-book', JSON.stringify(bookData));
+      } catch (e) {
+        console.warn("Storage quota exceeded, book could not be saved to offline storage.", e);
+      }
     }
 
-    // 4. Client-side Parsers
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedBook = localStorage.getItem('reader-saved-book');
+      if (savedBook) {
+        try {
+          const { title, author, pageCount, tocHtml, contentHtml, readingTime } = JSON.parse(savedBook);
+          loadBookIntoReader(title, author, pageCount, tocHtml, contentHtml, readingTime);
+        } catch (e) {
+          localStorage.removeItem('reader-saved-book');
+        }
+      }
+    });
+
+    // 5. Client-side Parsers
 
     // PDF parser using Mozilla PDF.js
     async function parsePdf(arrayBuffer) {
@@ -599,7 +1418,6 @@
         const page = await pdf.getPage(i);
         const textContent = await page.getTextContent();
         
-        // Group items into lines based on Y coordinate values
         const items = textContent.items;
         const linesMap = {};
         
@@ -619,13 +1437,11 @@
           linesMap[foundKey].push(item);
         });
         
-        // Sort Y coordinates descending (top of page is largest Y)
         const sortedY = Object.keys(linesMap).sort((a, b) => parseFloat(b) - parseFloat(a));
         
         let pageLines = [];
         sortedY.forEach(y => {
           const lineItems = linesMap[y];
-          // Sort line items ascending (left to right)
           lineItems.sort((a, b) => a.transform[4] - b.transform[4]);
           
           let lineText = "";
@@ -634,7 +1450,6 @@
               const prev = lineItems[idx - 1];
               const prevRight = prev.transform[4] + (prev.width || 0);
               const currentLeft = item.transform[4];
-              // Join words with space if gap is substantial
               if (currentLeft - prevRight > 1.5) {
                 lineText += " " + item.str;
               } else {
@@ -651,7 +1466,6 @@
           }
         });
         
-        // Strip running headers
         if (pageLines.length > 0) {
           if (isRunningHeader(pageLines[0])) {
             pageLines.shift();
@@ -663,7 +1477,6 @@
       return { allLines, pageCount };
     }
 
-    // PDF Running Header Detector
     function isRunningHeader(line) {
       const trimmed = line.trim();
       if (!trimmed) return false;
@@ -674,7 +1487,6 @@
       return false;
     }
 
-    // Reconstruct Paragraphs and Lists from physical text lines (PDF-style)
     function rebuildBlocksFromLines(allLines) {
       let blocks = [];
       let currentBlock = null;
@@ -693,10 +1505,8 @@
         let headingLevel = 3;
         let headingText = "";
         
-        // Chapter Heading Detection
         if (/^(?:CHAPTER\s+)?\d+$/i.test(line) && idx + 1 < allLines.length) {
           const next = allLines[idx + 1];
-          // Title-ish style
           if (/^[A-Z][A-Za-z\s:&,()—\-]{3,60}$/.test(next)) {
             isHeading = true;
             headingLevel = 1;
@@ -708,7 +1518,6 @@
           }
         }
         
-        // Inline headings detection
         if (/^CHAPTER\s+\d+:\s+(.+)$/i.test(line)) {
           isHeading = true;
           headingLevel = 1;
@@ -729,7 +1538,6 @@
           continue;
         }
         
-        // List Item detection
         const listMatch = line.match(/^(\d+\.|[a-z]\.|\([a-z0-9]+\)|\*|\-)\s+(.*)$/i);
         if (listMatch) {
           flushCurrentBlock();
@@ -742,7 +1550,6 @@
           continue;
         }
         
-        // Paragraph compilation
         if (currentBlock && (currentBlock.type === "paragraph" || currentBlock.type === "list-item")) {
           if (currentBlock.lastLine.endsWith("-") && /^[a-z]/.test(line)) {
             currentBlock.text = currentBlock.text.slice(0, -1) + line;
@@ -772,14 +1579,14 @@
       return blocks;
     }
 
-    // DOCX parser using Mammoth.js
+    // DOCX parser
     async function parseDocx(arrayBuffer) {
       const result = await mammoth.convertToHtml({ arrayBuffer: arrayBuffer });
       const html = result.value;
       return parseHtmlStructureToBlocks(html);
     }
 
-    // EPUB parser using JSZip + DOM Spine reading
+    // EPUB parser
     async function parseEpub(arrayBuffer) {
       const zip = await JSZip.loadAsync(arrayBuffer);
       let spineFiles = [];
@@ -798,6 +1605,7 @@
         
         const spineElems = xmlDoc.getElementsByTagName('itemref');
         const opfDir = opfFile.substring(0, opfFile.lastIndexOf('/') + 1);
+        
         for (let i = 0; i < spineElems.length; i++) {
           const idref = spineElems[i].getAttribute('idref');
           const href = manifestItems[idref];
@@ -879,7 +1687,6 @@
       return blocks;
     }
 
-    // Traverse DOM to build clean blocks
     function parseHtmlStructureToBlocks(htmlContent) {
       const parser = new DOMParser();
       const doc = parser.parseFromString(htmlContent, 'text/html');
@@ -916,11 +1723,10 @@
           }
         }
       }
-      
       return blocks;
     }
 
-    // 5. Packaged E-Reader Template Compiler
+    // 6. Tree-Structured Table of Contents compiler
     function compileHtmlReader(blocks, title, author, pageCount) {
       let wordCount = 0;
       blocks.forEach(b => {
@@ -938,13 +1744,68 @@
           .replace(/'/g, "&#039;");
       }
 
+      // Pre-process headings to build a tree
+      let tocTree = [];
+      let currentChapter = null;
+      let headingIndex = 0;
+
+      for (let i = 0; i < blocks.length; i++) {
+        const b = blocks[i];
+        if (b.type === "heading") {
+          const slug = `heading-${headingIndex}`;
+          const item = {
+            level: b.level,
+            text: b.text,
+            slug: slug,
+            children: []
+          };
+          
+          if (b.level === 1 || !currentChapter) {
+            tocTree.push(item);
+            currentChapter = item;
+          } else {
+            currentChapter.children.push(item);
+          }
+          headingIndex++;
+        }
+      }
+
       // Build Sidebar TOC & Article contents HTML
       let tocHtml = `<div class="toc-title">Table of Contents</div>\n<ul class="toc-list">\n`;
       let contentHtml = "";
-      let headingIndex = 0;
+      headingIndex = 0;
       let inList = false;
       let listType = "";
 
+      // TOC Tree Render
+      tocTree.forEach(chapter => {
+        const hasChildren = chapter.children.length > 0;
+        const toggleBtn = hasChildren 
+          ? `<button class="toc-toggle-btn" aria-label="Toggle section"><svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg></button>` 
+          : `<span class="toc-dot"></span>`;
+        
+        tocHtml += `  <li class="toc-item-group ${hasChildren ? 'has-sub' : ''}">\n`;
+        tocHtml += `    <div class="toc-item toc-indent-${chapter.level}" data-target="${chapter.slug}">\n`;
+        tocHtml += `      ${toggleBtn}\n`;
+        tocHtml += `      <a href="#${chapter.slug}">${escapeHtml(chapter.text)}</a>\n`;
+        tocHtml += `    </div>\n`;
+        
+        if (hasChildren) {
+          tocHtml += `    <ul class="toc-sublist">\n`;
+          chapter.children.forEach(sub => {
+            tocHtml += `      <li class="toc-item toc-indent-${sub.level}" data-target="${sub.slug}">\n`;
+            tocHtml += `        <span class="toc-dot"></span>\n`;
+            tocHtml += `        <a href="#${sub.slug}">${escapeHtml(sub.text)}</a>\n`;
+            tocHtml += `      </li>\n`;
+          });
+          tocHtml += `    </ul>\n`;
+        }
+        
+        tocHtml += `  </li>\n`;
+      });
+      tocHtml += "</ul>\n";
+
+      // Article content Render
       for (let i = 0; i < blocks.length; i++) {
         const b = blocks[i];
         if (b.type === "heading") {
@@ -953,11 +1814,7 @@
             inList = false;
           }
           const slug = `heading-${headingIndex}`;
-          const indentClass = `toc-indent-${b.level}`;
-          
-          tocHtml += `  <li class="toc-item ${indentClass}" data-target="${slug}"><a href="#${slug}">${escapeHtml(b.text)}</a></li>\n`;
           contentHtml += `<h${b.level} id="${slug}" class="reader-heading h${b.level}">${escapeHtml(b.text)}</h${b.level}>\n`;
-          
           headingIndex++;
         } else if (b.type === "list-item") {
           const currentType = /^\d/.test(b.marker) ? "ol" : "ul";
@@ -978,326 +1835,13 @@
       if (inList) {
         contentHtml += `</${listType}>\n`;
       }
-      tocHtml += "</ul>\n";
 
-      // Packed E-Reader source HTML
-      generatedHtmlContent = `<!DOCTYPE html>
-<html lang="en" data-theme="light">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${escapeHtml(title)} - Reader</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
-  
-  <style>
-    :root {
-      --bg-primary: #fcfbf9;
-      --bg-secondary: #f4f3f0;
-      --bg-sidebar: #f5f4f0;
-      --text-primary: #2c2a29;
-      --text-secondary: #6e6b64;
-      --accent-color: #bfa15f;
-      --accent-light: rgba(191, 161, 95, 0.1);
-      --border-color: #e5e3de;
-      --scrollbar-thumb: #d0cdc5;
-      --font-serif: 'Lora', Georgia, serif;
-      --font-sans: 'Inter', system-ui, sans-serif;
-      --font-current: var(--font-serif);
-      --font-size-base: 18px;
-      --line-height-base: 1.75;
-      --sidebar-width: 320px;
-      transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+      return { tocHtml, contentHtml, readingTime };
     }
 
-    [data-theme="dark"] {
-      --bg-primary: #121212;
-      --bg-secondary: #1a1a1a;
-      --bg-sidebar: #181818;
-      --text-primary: #e0e0e0;
-      --text-secondary: #9a9a9a;
-      --accent-color: #e5c158;
-      --accent-light: rgba(229, 193, 88, 0.15);
-      --border-color: #2d2d2d;
-      --scrollbar-thumb: #444444;
-    }
-
-    [data-theme="sepia"] {
-      --bg-primary: #f4ecd8;
-      --bg-secondary: #eae0c9;
-      --bg-sidebar: #eae0c9;
-      --text-primary: #433422;
-      --text-secondary: #705e4c;
-      --accent-color: #8c6239;
-      --accent-light: rgba(140, 98, 57, 0.1);
-      --border-color: #dfd4b7;
-      --scrollbar-thumb: #cabfa3;
-    }
-
-    [data-theme="velvet"] {
-      --bg-primary: #1d070b;
-      --bg-secondary: #290a10;
-      --bg-sidebar: #290a10;
-      --text-primary: #f5e8ea;
-      --text-secondary: #cba9af;
-      --accent-color: #e33e5a;
-      --accent-light: rgba(227, 62, 90, 0.15);
-      --border-color: #3d141b;
-      --scrollbar-thumb: #541d26;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background-color: var(--bg-primary); color: var(--text-primary); font-family: var(--font-sans); display: flex; height: 100vh; overflow-x: hidden; }
-
-    ::-webkit-scrollbar { width: 8px; height: 8px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: var(--accent-color); }
-
-    .sidebar {
-      width: var(--sidebar-width);
-      background-color: var(--bg-sidebar);
-      border-right: 1px solid var(--border-color);
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      flex-shrink: 0;
-      z-index: 100;
-      transition: transform 0.3s ease, width 0.3s ease;
-      overflow: hidden;
-    }
-
-    .sidebar.collapsed { transform: translateX(-100%); width: 0; border-right: none; }
-    .sidebar-header { padding: 24px; border-bottom: 1px solid var(--border-color); }
-    .sidebar-title { font-size: 20px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; font-family: var(--font-sans); }
-    .sidebar-subtitle { font-size: 13px; color: var(--text-secondary); line-height: 1.4; }
+    // 7. Interactive Reader Layout Controls
     
-    .toc-container { flex: 1; overflow-y: auto; padding: 16px 8px; }
-    .toc-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-secondary); font-weight: 600; margin-bottom: 12px; padding-left: 16px; }
-    .toc-list { list-style: none; }
-    .toc-item { margin-bottom: 2px; border-radius: 6px; transition: background-color 0.2s ease; }
-    .toc-item a { display: block; padding: 8px 16px; color: var(--text-primary); text-decoration: none; font-size: 14px; line-height: 1.4; }
-    .toc-item:hover { background-color: var(--bg-secondary); }
-    .toc-item.active { background-color: var(--accent-light); }
-    .toc-item.active a { color: var(--accent-color); font-weight: 600; }
-    .toc-indent-1 { font-weight: 600; margin-top: 12px; border-top: 1px dashed var(--border-color); padding-top: 8px; }
-    .toc-indent-2 { padding-left: 12px; }
-    .toc-indent-3 { padding-left: 24px; }
-
-    .main-content { flex: 1; display: flex; flex-direction: column; height: 100%; position: relative; }
-    
-    .top-navbar {
-      height: 64px;
-      border-bottom: 1px solid var(--border-color);
-      background-color: var(--bg-primary);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 24px;
-      position: sticky;
-      top: 0;
-      z-index: 90;
-    }
-
-    .navbar-left, .navbar-right { display: flex; align-items: center; gap: 16px; }
-    
-    .nav-btn {
-      background: none;
-      border: 1px solid var(--border-color);
-      color: var(--text-primary);
-      padding: 8px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 14px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.2s ease;
-    }
-
-    .nav-btn:hover { background-color: var(--bg-secondary); border-color: var(--accent-color); color: var(--accent-color); }
-    .nav-btn svg { width: 18px; height: 18px; fill: currentColor; }
-
-    .search-container { position: relative; width: 260px; }
-    .search-input { width: 100%; padding: 8px 12px 8px 36px; border: 1px solid var(--border-color); border-radius: 6px; background-color: var(--bg-secondary); color: var(--text-primary); font-size: 14px; outline: none; }
-    .search-input:focus { border-color: var(--accent-color); background-color: var(--bg-primary); }
-    .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; fill: var(--text-secondary); }
-
-    .settings-dropdown { position: relative; }
-    .dropdown-menu {
-      position: absolute; right: 0; top: 45px; background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; width: 280px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: none; flex-direction: column; gap: 16px; z-index: 110;
-    }
-    .dropdown-menu.show { display: flex; }
-    .settings-group { display: flex; flex-direction: column; gap: 8px; }
-    .settings-label { font-size: 11px; text-transform: uppercase; color: var(--text-secondary); font-weight: 600; }
-    .settings-row { display: flex; gap: 8px; }
-    .settings-option { flex: 1; padding: 6px 12px; border: 1px solid var(--border-color); background-color: var(--bg-primary); color: var(--text-primary); border-radius: 4px; cursor: pointer; font-size: 12px; text-align: center; }
-    .settings-option:hover, .settings-option.active { border-color: var(--accent-color); color: var(--accent-color); background-color: var(--accent-light); }
-
-    .theme-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
-    .theme-btn { border: 1px solid var(--border-color); border-radius: 6px; padding: 10px 4px; cursor: pointer; font-size: 11px; font-weight: 500; text-align: center; }
-    .theme-btn[data-theme-val="light"] { background-color: #fcfbf9; color: #2c2a29; }
-    .theme-btn[data-theme-val="dark"] { background-color: #121212; color: #e0e0e0; }
-    .theme-btn[data-theme-val="sepia"] { background-color: #f4ecd8; color: #433422; }
-    .theme-btn[data-theme-val="velvet"] { background-color: #1d070b; color: #f5e8ea; }
-    .theme-btn.active { outline: 2px solid var(--accent-color); outline-offset: 1px; }
-
-    .progress-bar-container { position: absolute; bottom: -1px; left: 0; width: 100%; height: 3px; background-color: transparent; }
-    .progress-bar { height: 100%; width: 0; background-color: var(--accent-color); }
-
-    .book-cover { max-width: 750px; margin: 60px auto 40px auto; padding: 0 24px; text-align: center; border-bottom: 2px solid var(--border-color); padding-bottom: 40px; }
-    .book-title { font-family: var(--font-sans); font-size: 42px; font-weight: 800; color: var(--text-primary); margin-bottom: 12px; }
-    .book-author { font-size: 20px; color: var(--accent-color); font-weight: 500; margin-bottom: 24px; }
-    .book-metadata { display: flex; justify-content: center; gap: 32px; font-size: 13px; color: var(--text-secondary); }
-    .meta-item { display: flex; align-items: center; gap: 6px; }
-
-    .reader-canvas { flex: 1; overflow-y: auto; padding: 20px 0 100px 0; scroll-behavior: smooth; }
-    .reader-container { max-width: 750px; margin: 0 auto; padding: 0 24px; font-family: var(--font-current); font-size: var(--font-size-base); line-height: var(--line-height-base); text-align: justify; }
-
-    .reader-heading { font-family: var(--font-sans); color: var(--text-primary); margin-top: 48px; margin-bottom: 18px; line-height: 1.3; }
-    .reader-heading.h1 { font-size: 32px; font-weight: 800; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-top: 72px; }
-    .reader-heading.h2 { font-size: 22px; font-weight: 700; border-left: 4px solid var(--accent-color); padding-left: 12px; margin-top: 54px; text-transform: uppercase; }
-    .reader-heading.h3 { font-size: 18px; font-weight: 600; margin-top: 36px; color: var(--accent-color); }
-    
-    .reader-paragraph { margin-bottom: 20px; color: var(--text-primary); }
-    .reader-list { margin-bottom: 20px; padding-left: 32px; }
-    .reader-list li { margin-bottom: 8px; color: var(--text-primary); }
-
-    .search-results-panel {
-      position: fixed; right: 24px; top: 75px; width: 320px; background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 15px 40px rgba(0,0,0,0.15); z-index: 200; display: none; flex-direction: column; max-height: 480px;
-    }
-    .search-results-header { padding: 12px 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 600; }
-    .close-results { cursor: pointer; background: none; border: none; color: var(--text-secondary); font-size: 16px; }
-    .search-results-list { overflow-y: auto; list-style: none; padding: 8px; }
-    .search-result-item { padding: 10px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; margin-bottom: 4px; }
-    .search-result-item:hover { background-color: var(--bg-primary); }
-    .search-result-snippet { color: var(--text-secondary); margin-top: 4px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .search-result-title { font-weight: 600; color: var(--accent-color); }
-    mark { background-color: rgba(191, 161, 95, 0.4); color: inherit; border-radius: 2px; }
-  </style>
-</head>
-<body>
-
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-      <div class="sidebar-title">${escapeHtml(title)}</div>
-      <div class="sidebar-subtitle">By ${escapeHtml(author)}</div>
-    </div>
-    <div class="toc-container">
-      ${tocHtml}
-    </div>
-  </aside>
-
-  <main class="main-content">
-    <header class="top-navbar">
-      <div class="navbar-left">
-        <button class="nav-btn" id="sidebar-toggle" title="Toggle Sidebar">
-          <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
-          <span>Contents</span>
-        </button>
-        
-        <div class="search-container">
-          <svg class="search-icon" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-          <input type="search" class="search-input" id="search-input" placeholder="Search book text...">
-        </div>
-      </div>
-      
-      <div class="navbar-right">
-        <div class="settings-dropdown">
-          <button class="nav-btn" id="settings-toggle">
-            <svg viewBox="0 0 24 24"><path d="M9 4v3h5v12h3V7h5V4H9zm-6 8h3v7h3v-7h3V9H3v3z"/></svg>
-            <span>Appearance</span>
-          </button>
-          
-          <div class="dropdown-menu" id="settings-menu">
-            <div class="settings-group">
-              <div class="settings-label">Theme</div>
-              <div class="theme-grid">
-                <div class="theme-btn active" data-theme-val="light">Light</div>
-                <div class="theme-btn" data-theme-val="dark">Dark</div>
-                <div class="theme-btn" data-theme-val="sepia">Sepia</div>
-                <div class="theme-btn" data-theme-val="velvet">Velvet</div>
-              </div>
-            </div>
-            
-            <div class="settings-group">
-              <div class="settings-label">Typography</div>
-              <div class="settings-row">
-                <button class="settings-option active" id="btn-font-serif">Serif</button>
-                <button class="settings-option" id="btn-font-sans">Sans</button>
-              </div>
-            </div>
-            
-            <div class="settings-group">
-              <div class="settings-label">Size</div>
-              <div class="settings-row">
-                <button class="settings-option" id="btn-size-dec">A-</button>
-                <button class="settings-option" id="btn-size-reset">Default</button>
-                <button class="settings-option" id="btn-size-inc">A+</button>
-              </div>
-            </div>
-            
-            <div class="settings-group">
-              <div class="settings-label">Line Spacing</div>
-              <div class="settings-row">
-                <button class="settings-option" id="btn-height-compact">Compact</button>
-                <button class="settings-option active" id="btn-height-normal">Normal</button>
-                <button class="settings-option" id="btn-height-loose">Loose</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <div class="progress-bar-container">
-        <div class="progress-bar" id="progress-bar"></div>
-      </div>
-    </header>
-    
-    <div class="search-results-panel" id="results-panel">
-      <div class="search-results-header">
-        <span>Search Results (<span id="results-count">0</span>)</span>
-        <button class="close-results" id="close-results">&times;</button>
-      </div>
-      <ul class="search-results-list" id="results-list"></ul>
-    </div>
-    
-    <div class="reader-canvas" id="reader-canvas">
-      <div class="book-cover">
-        <h1 class="book-title">${escapeHtml(title)}</h1>
-        <div class="book-author">By ${escapeHtml(author)}</div>
-        
-        <div class="book-metadata">
-          <div class="meta-item">
-            <svg style="width:14px;height:14px;fill:currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
-            <span>Original Pages: ${pageCount}</span>
-          </div>
-          <div class="meta-item">
-            <svg style="width:14px;height:14px;fill:currentColor" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>
-            <span>Est. Reading Time: ${readingTime} mins</span>
-          </div>
-        </div>
-      </div>
-      
-      <div class="reader-container" id="reader-container">
-        <article>
-          ${contentHtml}
-        </article>
-      </div>
-    </div>
-  </main>
-
-  <script>
-    let currentTheme = 'light';
-    let currentFontSize = 18;
-    let currentLineHeight = 1.75;
-    
-    const root = document.documentElement;
-    const canvas = document.getElementById('reader-canvas');
-    const container = document.getElementById('reader-container');
-    const progressBar = document.getElementById('progress-bar');
-    
+    // Theme switching
     document.querySelectorAll('.theme-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
@@ -1310,12 +1854,11 @@
     
     const savedTheme = localStorage.getItem('reader-theme');
     if (savedTheme) {
-      const activeBtn = document.querySelector('.theme-btn[data-theme-val="' + savedTheme + '"]');
+      const activeBtn = document.querySelector(`.theme-btn[data-theme-val="${savedTheme}"]`);
       if (activeBtn) activeBtn.click();
     }
     
-    const sidebar = document.getElementById('sidebar');
-    const sidebarToggle = document.getElementById('sidebar-toggle');
+    // Sidebar toggle (using margin-left sliding collapse)
     sidebarToggle.addEventListener('click', () => {
       sidebar.classList.toggle('collapsed');
       localStorage.setItem('reader-sidebar-collapsed', sidebar.classList.contains('collapsed'));
@@ -1326,8 +1869,7 @@
       sidebar.classList.add('collapsed');
     }
     
-    const settingsToggle = document.getElementById('settings-toggle');
-    const settingsMenu = document.getElementById('settings-menu');
+    // Appearance settings toggle
     settingsToggle.addEventListener('click', (e) => {
       e.stopPropagation();
       settingsMenu.classList.toggle('show');
@@ -1339,8 +1881,7 @@
       }
     });
     
-    const btnFontSerif = document.getElementById('btn-font-serif');
-    const btnFontSans = document.getElementById('btn-font-sans');
+    // Font styling
     btnFontSerif.addEventListener('click', () => {
       btnFontSerif.classList.add('active');
       btnFontSans.classList.remove('active');
@@ -1358,10 +1899,7 @@
     const savedFont = localStorage.getItem('reader-font');
     if (savedFont === 'sans') btnFontSans.click();
     
-    const btnSizeInc = document.getElementById('btn-size-inc');
-    const btnSizeDec = document.getElementById('btn-size-dec');
-    const btnSizeReset = document.getElementById('btn-size-reset');
-    
+    // Font sizing
     btnSizeInc.addEventListener('click', () => {
       if (currentFontSize < 28) {
         currentFontSize += 1;
@@ -1390,10 +1928,7 @@
       root.style.setProperty('--font-size-base', currentFontSize + 'px');
     }
     
-    const btnCompact = document.getElementById('btn-height-compact');
-    const btnNormal = document.getElementById('btn-height-normal');
-    const btnLoose = document.getElementById('btn-height-loose');
-    
+    // Line height controls
     function resetHeights() {
       btnCompact.classList.remove('active');
       btnNormal.classList.remove('active');
@@ -1434,47 +1969,32 @@
       else btnNormal.classList.add('active');
     }
     
+    // Scroll progress tracker
     canvas.addEventListener('scroll', () => {
       const scrollHeight = canvas.scrollHeight - canvas.clientHeight;
       const scrollPercentage = (canvas.scrollTop / scrollHeight) * 100;
       progressBar.style.width = scrollPercentage + '%';
     });
-    
-    const observer = new IntersectionObserver(entries => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const id = entry.target.getAttribute('id');
-          document.querySelectorAll('.toc-item').forEach(item => {
-            if (item.getAttribute('data-target') === id) {
-              item.classList.add('active');
-              item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-            } else {
-              item.classList.remove('active');
-            }
-          });
-        }
-      });
-    }, { threshold: 0.1, rootMargin: '0px 0px -70% 0px' });
 
-    document.querySelectorAll('.reader-heading').forEach(heading => {
-      observer.observe(heading);
-    });
-    
-    document.querySelectorAll('.toc-item a').forEach(link => {
-      link.addEventListener('click', (e) => {
-        e.preventDefault();
-        const targetId = link.parentElement.getAttribute('data-target');
-        const targetElem = document.getElementById(targetId);
-        if (targetElem) targetElem.scrollIntoView({ behavior: 'smooth' });
-      });
+    // Keyboard Shortcuts (Working globally inside viewer)
+    document.addEventListener('keydown', (e) => {
+      if (readerPanel.style.display !== 'flex') return;
+      if (document.activeElement === searchInput) return;
+      
+      const key = e.key.toLowerCase();
+      if (key === 't') {
+        const themes = ['light', 'dark', 'sepia', 'velvet'];
+        let nextIdx = (themes.indexOf(currentTheme) + 1) % themes.length;
+        const nextTheme = themes[nextIdx];
+        const activeBtn = document.querySelector(`.theme-btn[data-theme-val="${nextTheme}"]`);
+        if (activeBtn) activeBtn.click();
+      }
+      if (key === 'z') btnSizeInc.click();
+      if (key === 'x') btnSizeDec.click();
+      if (key === 'c') btnSizeReset.click();
     });
 
-    const searchInput = document.getElementById('search-input');
-    const resultsPanel = document.getElementById('results-panel');
-    const resultsList = document.getElementById('results-list');
-    const resultsCount = document.getElementById('results-count');
-    const closeResults = document.getElementById('close-results');
-    
+    // 8. Text Search indexing and matches
     closeResults.addEventListener('click', () => {
       resultsPanel.style.display = 'none';
       clearHighlights();
@@ -1489,7 +2009,7 @@
     });
     
     function clearHighlights() {
-      const article = document.querySelector('article');
+      const article = document.getElementById('article-content');
       article.innerHTML = article.innerHTML.replace(/<mark>([^<]*)<\/mark>/gi, '$1');
     }
     
@@ -1508,7 +2028,7 @@
       elements.forEach(elem => {
         const text = elem.textContent;
         if (regex.test(text)) {
-          let parentHeading = "Preface / Intro";
+          let parentHeading = "Cover Page";
           let prev = elem.previousElementSibling;
           while (prev) {
             if (prev.classList.contains('reader-heading')) {
@@ -1545,10 +2065,10 @@
         if (end < m.snippet.length) snippetText = snippetText + '...';
         
         const snippetHtml = snippetText.replace(regex, '<mark>$1</mark>');
-        li.innerHTML = \`
-          <div class="search-result-title">\${m.heading}</div>
-          <div class="search-result-snippet">\${snippetHtml}</div>
-        \`;
+        li.innerHTML = `
+          <div class="search-result-title">${m.heading}</div>
+          <div class="search-result-snippet">${snippetHtml}</div>
+        `;
         
         li.addEventListener('click', () => {
           m.elem.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1561,25 +2081,6 @@
         
         resultsList.appendChild(li);
       });
-    }
-
-    document.addEventListener('keydown', (e) => {
-      if (document.activeElement === searchInput) return;
-      const key = e.key.toLowerCase();
-      if (key === 't') {
-        const themes = ['light', 'dark', 'sepia', 'velvet'];
-        let nextIdx = (themes.indexOf(currentTheme) + 1) % themes.length;
-        const nextTheme = themes[nextIdx];
-        const activeBtn = document.querySelector('.theme-btn[data-theme-val="' + nextTheme + '"]');
-        if (activeBtn) activeBtn.click();
-      }
-      if (key === 'z') btnSizeInc.click();
-      if (key === 'x') btnSizeDec.click();
-      if (key === 'c') btnSizeReset.click();
-    });
-  <\/script>
-</body>
-</html>`;
     }
   </script>
 </body>
