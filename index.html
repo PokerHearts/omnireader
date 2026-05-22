@@ -556,8 +556,7 @@
       align-items: center;
       justify-content: space-between;
       padding: 0 24px;
-      position: sticky;
-      top: 0;
+      position: relative;
       z-index: 90;
     }
 
@@ -935,6 +934,8 @@
       font-weight: 600;
       cursor: default;
       margin-left: 1px;
+      user-select: none;
+      -webkit-user-select: none;
     }
 
     /* Dictionary Panel */
@@ -1738,6 +1739,14 @@
                 </div>
               </div>
 
+              <div class="settings-group">
+                <div class="settings-label">Gemini API Key</div>
+                <div style="display: flex; gap: 8px;">
+                  <input type="password" id="gemini-key-input" class="form-input" style="padding: 8px 10px; font-size: 13px; border-radius: 6px; border: 1px solid var(--border-color); background-color: var(--bg-secondary); color: var(--text-primary); flex: 1;" placeholder="Paste API Key here...">
+                </div>
+                <div style="font-size: 10px; color: var(--text-secondary); margin-top: 4px; line-height: 1.3;">Securely stored locally in your browser to power premium AI summarization and Hinglish-free translation.</div>
+              </div>
+
               <!-- Shortcut legend inside dropdown -->
               <div class="settings-group">
                 <div class="settings-label">Shortcuts</div>
@@ -2239,12 +2248,23 @@
         // Initialize lazy loader
         initPdfLazyLoader();
       } else {
-        const headings = document.querySelectorAll('.reader-heading');
+        const tocItems = document.querySelectorAll('.toc-item');
+        const targetElements = [];
+        tocItems.forEach(item => {
+          const targetId = item.getAttribute('data-target');
+          if (targetId) {
+            const el = document.getElementById(targetId);
+            if (el) {
+              targetElements.push(el);
+            }
+          }
+        });
+
         const headingObserver = new IntersectionObserver(entries => {
           entries.forEach(entry => {
             if (entry.isIntersecting) {
               const id = entry.target.getAttribute('id');
-              document.querySelectorAll('.toc-item').forEach(item => {
+              tocItems.forEach(item => {
                 if (item.getAttribute('data-target') === id) {
                   item.classList.add('active');
                   item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
@@ -2265,7 +2285,7 @@
           });
         }, { threshold: 0.1, rootMargin: '0px 0px -70% 0px' });
 
-        headings.forEach(heading => headingObserver.observe(heading));
+        targetElements.forEach(el => headingObserver.observe(el));
       }
 
       // 5. Switch visible Panels
@@ -2355,7 +2375,22 @@
                 const pdfjsLib = window['pdfjs-dist/build/pdf'];
                 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
                 pdfDocumentInstance = await pdfjsLib.getDocument({ data: fileArrayBuffer }).promise;
-                console.log("PDF document loaded in background from IndexedDB.");
+                console.log("PDF document loaded in background from IndexedDB. Extracting text cache...");
+                
+                const pageCount = pdfDocumentInstance.numPages;
+                const tempTextPages = [];
+                for (let pageNum = 1; pageNum <= pageCount; pageNum++) {
+                  try {
+                    const page = await pdfDocumentInstance.getPage(pageNum);
+                    const textContent = await page.getTextContent();
+                    const pageText = textContent.items.map(item => item.str).join(" ");
+                    tempTextPages.push({ pageNum, text: pageText });
+                  } catch (e) {
+                    console.warn(`Failed background text extraction for page ${pageNum}:`, e);
+                  }
+                }
+                pdfTextPages = tempTextPages;
+                console.log("Background PDF text cache extraction complete. Total pages cached:", pdfTextPages.length);
               } catch (err) {
                 console.warn("Background PDF initialization failed:", err);
               }
@@ -2380,12 +2415,17 @@
       
       let blocks = [];
       let totalWords = 0;
+      pdfTextPages = []; // Reset text cache
       
       for (let pageNum = 1; pageNum <= pageCount; pageNum++) {
         showProgress("Structuring PDF Layout...", `Page ${pageNum} of ${pageCount}...`);
         const page = await pdf.getPage(pageNum);
         const textContent = await page.getTextContent();
         const items = textContent.items;
+        
+        // Extract and cache text of this page for AI search/summarization
+        const pageText = items.map(item => item.str).join(" ");
+        pdfTextPages.push({ pageNum: pageNum, text: pageText });
         
         if (items.length === 0) continue;
         
@@ -3017,12 +3057,11 @@
       // Pre-process headings to build a tree
       let tocTree = [];
       let currentChapter = null;
-      let headingIndex = 0;
 
       for (let i = 0; i < blocks.length; i++) {
         const b = blocks[i];
         if (b.type === "heading") {
-          const slug = `heading-${headingIndex}`;
+          const slug = `block-${i}`;
           const item = {
             level: b.level || 1,
             text: b.text,
@@ -3036,7 +3075,6 @@
           } else {
             currentChapter.children.push(item);
           }
-          headingIndex++;
         }
       }
 
@@ -3049,35 +3087,16 @@
         for (let i = 0; i < blocks.length; i++) {
           const b = blocks[i];
           if (b.pageNum && b.pageNum >= nextTargetPage && b.pageNum !== lastAssignedPage) {
-            b.type = "heading";
-            b.level = 1;
-            b.text = `Pages ${b.pageNum} - ${Math.min(b.pageNum + step - 1, pageCount)}`;
-            lastAssignedPage = b.pageNum;
-            nextTargetPage += step;
-          }
-        }
-        
-        // Re-run the heading detection to build the tree
-        headingIndex = 0;
-        currentChapter = null;
-        for (let i = 0; i < blocks.length; i++) {
-          const b = blocks[i];
-          if (b.type === "heading") {
-            const slug = `heading-${headingIndex}`;
-            const item = {
-              level: b.level || 1,
-              text: b.text,
+            const slug = `block-${i}`;
+            const text = `Pages ${b.pageNum} - ${Math.min(b.pageNum + step - 1, pageCount)}`;
+            tocTree.push({
+              level: 1,
+              text: text,
               slug: slug,
               children: []
-            };
-            
-            if (b.level === 1 || !currentChapter) {
-              tocTree.push(item);
-              currentChapter = item;
-            } else {
-              currentChapter.children.push(item);
-            }
-            headingIndex++;
+            });
+            lastAssignedPage = b.pageNum;
+            nextTargetPage += step;
           }
         }
       }
@@ -3085,7 +3104,6 @@
       // Build Sidebar TOC & Article contents HTML
       let tocHtml = `<div class="toc-title">Table of Contents</div>\n<ul class="toc-list">\n`;
       let contentHtml = "";
-      headingIndex = 0;
       let inList = false;
       let listType = "";
 
@@ -3126,9 +3144,7 @@
             contentHtml += `</${listType}>\n`;
             inList = false;
           }
-          const slug = `heading-${headingIndex}`;
-          contentHtml += `<h${b.level} id="${slug}" class="reader-heading h${b.level}">${formatTextWithRefs(b.html || escapeHtml(b.text))}${pageBadge}</h${b.level}>\n`;
-          headingIndex++;
+          contentHtml += `<h${b.level} id="block-${i}" class="reader-heading h${b.level}">${formatTextWithRefs(b.html || escapeHtml(b.text))}${pageBadge}</h${b.level}>\n`;
         } else if (b.type === "list-item") {
           const currentType = /^\d/.test(b.marker) ? "ol" : "ul";
           if (!inList) {
@@ -3136,26 +3152,26 @@
             listType = currentType;
             contentHtml += `<${listType} class="reader-list">\n`;
           }
-          contentHtml += `  <li>${formatTextWithRefs(b.html || escapeHtml(b.text))}${pageBadge}</li>\n`;
+          contentHtml += `  <li id="block-${i}">${formatTextWithRefs(b.html || escapeHtml(b.text))}${pageBadge}</li>\n`;
         } else if (b.type === "paragraph") {
           if (inList) {
             contentHtml += `</${listType}>\n`;
             inList = false;
           }
-          contentHtml += `<p class="reader-paragraph">${formatTextWithRefs(b.html || escapeHtml(b.text))}${pageBadge}</p>\n`;
+          contentHtml += `<p id="block-${i}" class="reader-paragraph">${formatTextWithRefs(b.html || escapeHtml(b.text))}${pageBadge}</p>\n`;
         } else if (b.type === "table") {
           if (inList) {
             contentHtml += `</${listType}>\n`;
             inList = false;
           }
-          contentHtml += `<div class="reader-table-container">${b.html}</div>\n`;
+          contentHtml += `<div id="block-${i}" class="reader-table-container">${b.html}</div>\n`;
         } else if (b.type === "image") {
           if (inList) {
             contentHtml += `</${listType}>\n`;
             inList = false;
           }
           contentHtml += `
-            <div class="reader-image-container">
+            <div id="block-${i}" class="reader-image-container">
               <img src="${b.src}" alt="${escapeHtml(b.alt)}" class="reader-image">
               ${b.alt ? `<div class="reader-image-caption">${escapeHtml(b.alt)}</div>` : ''}
             </div>\n`;
@@ -3164,43 +3180,43 @@
             contentHtml += `</${listType}>\n`;
             inList = false;
           }
-          contentHtml += `<div class="reader-list-container">${formatTextWithRefs(b.html)}</div>\n`;
+          contentHtml += `<div id="block-${i}" class="reader-list-container">${formatTextWithRefs(b.html)}</div>\n`;
         } else if (b.type === "blockquote") {
           if (inList) {
             contentHtml += `</${listType}>\n`;
             inList = false;
           }
-          contentHtml += `<blockquote class="reader-blockquote">${formatTextWithRefs(b.html)}</blockquote>\n`;
+          contentHtml += `<blockquote id="block-${i}" class="reader-blockquote">${formatTextWithRefs(b.html)}</blockquote>\n`;
         } else if (b.type === "pre") {
           if (inList) {
             contentHtml += `</${listType}>\n`;
             inList = false;
           }
-          contentHtml += `<div class="reader-code-container">${b.html}</div>\n`;
+          contentHtml += `<div id="block-${i}" class="reader-code-container">${b.html}</div>\n`;
         } else if (b.type === "figure") {
           if (inList) {
             contentHtml += `</${listType}>\n`;
             inList = false;
           }
-          contentHtml += `<div class="reader-figure-container">${b.html}</div>\n`;
+          contentHtml += `<div id="block-${i}" class="reader-figure-container">${b.html}</div>\n`;
         } else if (b.type === "svg") {
           if (inList) {
             contentHtml += `</${listType}>\n`;
             inList = false;
           }
-          contentHtml += `<div class="reader-svg-container">${b.html}</div>\n`;
+          contentHtml += `<div id="block-${i}" class="reader-svg-container">${b.html}</div>\n`;
         } else if (b.type === "formula") {
           if (inList) {
             contentHtml += `</${listType}>\n`;
             inList = false;
           }
-          contentHtml += `<div class="reader-formula-container">${b.html}</div>\n`;
+          contentHtml += `<div id="block-${i}" class="reader-formula-container">${b.html}</div>\n`;
         } else if (b.type === "aside") {
           if (inList) {
             contentHtml += `</${listType}>\n`;
             inList = false;
           }
-          contentHtml += `<aside class="reader-aside">${formatTextWithRefs(b.html)}</aside>\n`;
+          contentHtml += `<aside id="block-${i}" class="reader-aside">${formatTextWithRefs(b.html)}</aside>\n`;
         }
       }
       if (inList) {
@@ -3339,6 +3355,16 @@
       else if (currentLineHeight === 2.0) btnLoose.classList.add('active');
       else btnNormal.classList.add('active');
     }
+
+    // Gemini API Key listener and persistence
+    const geminiKeyInput = document.getElementById('gemini-key-input');
+    const savedGeminiKey = localStorage.getItem('reader-gemini-key');
+    if (savedGeminiKey) {
+      geminiKeyInput.value = savedGeminiKey;
+    }
+    geminiKeyInput.addEventListener('input', () => {
+      localStorage.setItem('reader-gemini-key', geminiKeyInput.value.trim());
+    });
     
     // Scroll progress tracker
     canvas.addEventListener('scroll', () => {
@@ -3353,6 +3379,25 @@
       if (document.activeElement === searchInput) return;
       
       const key = e.key.toLowerCase();
+
+      // Shift key shortcuts (Instant execution)
+      if (e.shiftKey && key === 's') {
+        e.preventDefault();
+        dictPanel.classList.add('open');
+        document.getElementById('tab-btn-summary').click();
+        const runBtn = document.getElementById('btn-run-summary');
+        if (runBtn) runBtn.click();
+        return;
+      }
+      if (e.shiftKey && key === 'a') {
+        e.preventDefault();
+        dictPanel.classList.add('open');
+        document.getElementById('tab-btn-translate').click();
+        const runBtn = document.getElementById('btn-run-translate');
+        if (runBtn) runBtn.click();
+        return;
+      }
+
       if (key === 't') {
         const themes = ['light', 'dark', 'sepia', 'velvet'];
         let nextIdx = (themes.indexOf(currentTheme) + 1) % themes.length;
@@ -3711,15 +3756,14 @@
       return null;
     }
 
-    // Double-click to look up a word natively
     articleContent.addEventListener('dblclick', async (e) => {
-      let word = getWordAtPoint(e.target, e.clientX, e.clientY);
-      
+      let word = '';
+      const selection = window.getSelection();
+      if (selection) {
+        word = selection.toString().trim();
+      }
       if (!word) {
-        const selection = window.getSelection();
-        if (selection) {
-          word = selection.toString().trim();
-        }
+        word = getWordAtPoint(e.target, e.clientX, e.clientY);
       }
 
       // Clean the word: remove punctuation, superscripts, digits
@@ -3901,6 +3945,14 @@
         if (!startElem) {
           return document.getElementById('article-content').innerText || "";
         }
+        
+        let nextTargetId = null;
+        const tocItems = Array.from(document.querySelectorAll('.toc-item'));
+        const activeIndex = tocItems.indexOf(active);
+        if (activeIndex !== -1 && activeIndex + 1 < tocItems.length) {
+          nextTargetId = tocItems[activeIndex + 1].getAttribute('data-target');
+        }
+
         let textParts = [];
         let current = startElem;
         textParts.push(current.innerText || current.textContent || "");
@@ -3909,6 +3961,9 @@
         const startLevel = parseInt(startElem.tagName.substring(1)) || 1;
         
         while (current) {
+          if (nextTargetId && current.getAttribute('id') === nextTargetId) {
+            break;
+          }
           if (current.classList.contains('reader-heading')) {
             const currentLevel = parseInt(current.tagName.substring(1)) || 1;
             if (currentLevel <= startLevel) {
@@ -3996,8 +4051,115 @@
       return selected.map(item => `• ${item.sentence}`).join('\n\n');
     }
 
+    async function callGeminiApi(prompt, apiKey) {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: prompt
+            }]
+          }]
+        })
+      });
+      if (!response.ok) {
+        const errJson = await response.json().catch(() => ({}));
+        const errMsg = errJson?.error?.message || `HTTP ${response.status} ${response.statusText}`;
+        throw new Error(errMsg);
+      }
+      const data = await response.json();
+      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!text) {
+        throw new Error("Empty response from Gemini API.");
+      }
+      return text;
+    }
+
+    function renderMarkdownToHtml(md) {
+      if (!md) return "";
+      let html = md;
+      
+      // Escape HTML characters to prevent XSS except we allow formatting we generate
+      html = html
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+
+      // Headings
+      html = html.replace(/^### (.*?)$/gm, '<h4 style="margin: 16px 0 8px; color: var(--text-primary); font-size: 1.1em; font-weight: 600;">$1</h4>');
+      html = html.replace(/^## (.*?)$/gm, '<h3 style="margin: 20px 0 10px; color: var(--text-primary); font-size: 1.25em; font-weight: 600;">$1</h3>');
+      html = html.replace(/^# (.*?)$/gm, '<h2 style="margin: 24px 0 12px; color: var(--text-primary); font-size: 1.4em; font-weight: 700; border-bottom: 1px solid var(--border-color); padding-bottom: 6px;">$1</h2>');
+
+      // Bold **text**
+      html = html.replace(/\*\*(.*?)\*\*/g, '<strong style="color: var(--text-primary); font-weight: 600;">$1</strong>');
+      // Italic *text*
+      html = html.replace(/\*(.*?)\*/g, '<em style="font-style: italic;">$1</em>');
+
+      // Code blocks and inline code
+      html = html.replace(/```([\s\S]*?)```/g, '<pre style="background: var(--hover-color); padding: 12px; border-radius: 6px; font-family: monospace; overflow-x: auto; margin: 12px 0;"><code>$1</code></pre>');
+      html = html.replace(/`(.*?)`/g, '<code style="background: var(--hover-color); padding: 2px 6px; border-radius: 4px; font-family: monospace;">$1</code>');
+
+      // Unordered lists
+      const lines = html.split('\n');
+      let inList = false;
+      const processedLines = [];
+      
+      for (let line of lines) {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('- ') || trimmed.startsWith('* ') || trimmed.startsWith('• ')) {
+          const itemText = trimmed.replace(/^[-*•]\s*/, '');
+          if (!inList) {
+            inList = true;
+            processedLines.push('<ul style="margin: 8px 0; padding-left: 20px; line-height: 1.65; color: var(--text-primary);">');
+          }
+          processedLines.push(`<li style="margin-bottom: 6px;">${itemText}</li>`);
+        } else {
+          if (inList) {
+            inList = false;
+            processedLines.push('</ul>');
+          }
+          processedLines.push(line);
+        }
+      }
+      if (inList) {
+        processedLines.push('</ul>');
+      }
+      
+      html = processedLines.join('\n');
+
+      // Paragraphs
+      html = html
+        .split(/\n{2,}/)
+        .map(p => {
+          const trimmed = p.trim();
+          if (!trimmed) return "";
+          if (trimmed.startsWith('<h') || trimmed.startsWith('<ul') || trimmed.startsWith('</ul') || trimmed.startsWith('<li') || trimmed.startsWith('<pre') || trimmed.startsWith('<blockquote')) {
+            return trimmed;
+          }
+          return `<p style="margin-bottom: 12px; line-height: 1.65; color: var(--text-primary); text-align: justify;">${trimmed}</p>`;
+        })
+        .join('\n');
+
+      return html;
+    }
+
     // Asynchronous Summarizer Manager
     async function summarizeText(text) {
+      const apiKey = localStorage.getItem('reader-gemini-key');
+      if (apiKey) {
+        try {
+          const prompt = `Please provide a high-quality key-points and narrative summary of the following text from a book. Use Markdown format (using headers, bullet points, and clean paragraphs as appropriate) to structure your response beautifully: \n\n${text}`;
+          const summary = await callGeminiApi(prompt, apiKey);
+          return summary;
+        } catch (e) {
+          console.error("Gemini AI summarizer failed, using extractive fallback:", e);
+        }
+      }
+
       if (window.ai && window.ai.summarizer) {
         try {
           const capabilities = await window.ai.summarizer.capabilities();
@@ -4026,6 +4188,23 @@
     async function translateText(text, targetLang) {
       if (!text || text.trim().length === 0) return "No text available to translate.";
       
+      const apiKey = localStorage.getItem('reader-gemini-key');
+      if (apiKey) {
+        try {
+          let systemInstruction = "";
+          if (targetLang === 'hi') {
+            systemInstruction = `CRITICAL INSTRUCTION: The translation to Hindi MUST be in PURE Hindi language and Devanagari script. DO NOT use Hinglish (mixed script or colloquial English words transliterated into Hindi, like writing 'time' as 'टाइम' or using English grammar structures). Use beautiful, natural, grammatically correct, and formal/standard Hindi (Devanagari script) vocabulary appropriate for a printed book.`;
+          } else {
+            systemInstruction = `Translate the text accurately and naturally into the target language (${targetLang}), maintaining standard formal prose appropriate for a printed book.`;
+          }
+          const prompt = `${systemInstruction}\n\nTranslate the following text to target language code "${targetLang}". Return ONLY the translated text without any preambles, explanations, or metadata:\n\n${text}`;
+          const translation = await callGeminiApi(prompt, apiKey);
+          return translation;
+        } catch (e) {
+          console.error("Gemini AI translator failed, using Google Translate fallback:", e);
+        }
+      }
+
       const maxChunkLength = 1500;
       const chunks = [];
       let currentChunk = "";
@@ -4129,8 +4308,13 @@
       
       try {
         const summary = await summarizeText(textToSummarize);
+        const apiKey = localStorage.getItem('reader-gemini-key');
         let formatted = "";
-        if (summary.includes('•')) {
+        
+        if (apiKey || summary.includes('**') || summary.startsWith('#') || summary.startsWith('-') || summary.startsWith('*')) {
+          const prefix = apiKey ? `<div style="font-size: 12px; color: var(--accent-color); font-weight: 500; margin-bottom: 12px; display: flex; align-items: center; gap: 4px;"><span>✨</span> Premium Gemini AI Summary</div>` : '';
+          formatted = prefix + renderMarkdownToHtml(summary);
+        } else if (summary.includes('•')) {
           const listItems = summary
             .split('\n')
             .map(s => s.trim())
@@ -4196,12 +4380,21 @@
       
       try {
         const translation = await translateText(textToTranslate, targetLang);
-        const formatted = translation
-          .split('\n')
-          .map(p => p.trim())
-          .filter(p => p.length > 0)
-          .map(p => `<p style="margin-bottom:12px; color:var(--text-primary);">${escapeHtml(p)}</p>`)
-          .join('');
+        const apiKey = localStorage.getItem('reader-gemini-key');
+        let formatted = "";
+        
+        if (apiKey) {
+          const prefix = `<div style="font-size: 12px; color: var(--accent-color); font-weight: 500; margin-bottom: 12px; display: flex; align-items: center; gap: 4px;"><span>✨</span> Premium Gemini AI Translation</div>`;
+          formatted = prefix + renderMarkdownToHtml(translation);
+        } else {
+          formatted = translation
+            .split('\n')
+            .map(p => p.trim())
+            .filter(p => p.length > 0)
+            .map(p => `<p style="margin-bottom:12px; color:var(--text-primary);">${escapeHtml(p)}</p>`)
+            .join('');
+          formatted += `<div style="font-size:11px;color:var(--text-muted);margin-top:16px;border-top:1px solid var(--border-color);padding-top:8px;">💡 Tip: Add a Gemini API Key in Settings for premium context-aware AI translations.</div>`;
+        }
         translateOutput.innerHTML = formatted;
       } catch (err) {
         translateOutput.innerHTML = `<p style="color:var(--accent-color);font-weight:500;">Translation failed: ${err.message}</p>`;
