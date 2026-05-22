@@ -931,11 +931,12 @@
     }
 
     /* Dictionary Panel */
+    /* Upgraded Unified AI Assistant Panel */
     .dict-panel {
       position: fixed;
-      right: -400px;
+      right: -440px;
       top: 0;
-      width: 380px;
+      width: 420px;
       height: 100vh;
       background-color: var(--bg-secondary);
       border-left: 1px solid var(--border-color);
@@ -953,7 +954,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 20px 24px;
+      padding: 16px 20px;
       border-bottom: 1px solid var(--border-color);
       flex-shrink: 0;
     }
@@ -979,10 +980,129 @@
       background: var(--accent-light);
       color: var(--accent-color);
     }
+    
+    /* Modern Premium Tabbed Navigation Styles */
+    .ai-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border-color);
+      background-color: var(--bg-sidebar);
+      flex-shrink: 0;
+    }
+    .ai-tab {
+      flex: 1;
+      padding: 12px 8px;
+      text-align: center;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      transition: all 0.2s;
+      border-bottom: 2px solid transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .ai-tab:hover {
+      color: var(--accent-color);
+    }
+    .ai-tab.active {
+      color: var(--accent-color);
+      border-bottom-color: var(--accent-color);
+      background-color: rgba(227, 62, 90, 0.02);
+    }
+    #reader-panel[data-theme="dark"] .ai-tab.active {
+      background-color: rgba(229, 193, 88, 0.05);
+    }
+    #reader-panel[data-theme="sepia"] .ai-tab.active {
+      background-color: rgba(140, 98, 57, 0.04);
+    }
+    #reader-panel[data-theme="velvet"] .ai-tab.active {
+      background-color: rgba(227, 62, 90, 0.06);
+    }
+
+    /* Tab Contents and Body Wrapper */
+    .ai-body {
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .ai-tab-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: none;
+      flex-direction: column;
+    }
+    .ai-tab-content.active {
+      display: flex;
+    }
+
+    .ai-control-group {
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    .scope-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .scope-btn {
+      flex: 1;
+      padding: 8px 6px;
+      border: 1px solid var(--border-color);
+      background-color: var(--bg-secondary);
+      color: var(--text-primary);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 600;
+      text-align: center;
+      transition: all 0.2s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .scope-btn:hover, .scope-btn.active {
+      border-color: var(--accent-color);
+      color: var(--accent-color);
+      background-color: var(--accent-light);
+    }
+
+    .ai-result-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border-color);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .ai-result-content {
+      font-size: 14px;
+      line-height: 1.65;
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+    }
+    .ai-result-content p {
+      margin-bottom: 12px;
+    }
+    .ai-result-content ul {
+      margin-bottom: 12px;
+      padding-left: 20px;
+    }
+    .ai-result-content li {
+      margin-bottom: 6px;
+    }
+
     .dict-body {
       flex: 1;
       overflow-y: auto;
-      padding: 24px;
+      padding: 0;
     }
     .dict-word {
       font-size: 28px;
@@ -1525,6 +1645,8 @@
                     <tr><td>Size Down:</td><td align="right"><span class="shortcut-key">X</span></td></tr>
                     <tr><td>Reset Size:</td><td align="right"><span class="shortcut-key">C</span></td></tr>
                     <tr><td>Dictionary:</td><td align="right"><span class="shortcut-key">D</span></td></tr>
+                    <tr><td>Summarize:</td><td align="right"><span class="shortcut-key">S</span></td></tr>
+                    <tr><td>Translate:</td><td align="right"><span class="shortcut-key">A</span></td></tr>
                   </table>
                 </div>
               </div>
@@ -1572,30 +1694,121 @@
       </div>
     </main>
 
-    <!-- Dictionary Slide Panel -->
+    <!-- Upgraded Unified AI Assistant Panel -->
     <aside class="dict-panel" id="dict-panel">
       <div class="dict-header">
-        <span class="dict-header-title">Dictionary</span>
+        <span class="dict-header-title" id="ai-panel-title">AI Assistant</span>
         <button class="dict-close" id="dict-close">&times;</button>
       </div>
-      <div class="dict-body" id="dict-body">
-        <div class="dict-not-found">
-          <div class="dict-not-found-icon">📖</div>
-          <div class="dict-not-found-msg">Double-click any word<br>to look it up</div>
+      
+      <!-- Tabs header -->
+      <div class="ai-tabs">
+        <div class="ai-tab active" data-tab="dict" id="tab-btn-dict">
+          <svg style="width:16px;height:16px;fill:currentColor" viewBox="0 0 24 24"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM9 4h2v5l-1-.75L9 9V4zm9 16H6V4h1c.55 0 1 .45 1 1v5.5l2-1.5 2 1.5V5c0-.55.45-1 1-1h5v16z"/></svg>
+          <span>Dict</span>
         </div>
+        <div class="ai-tab" data-tab="summary" id="tab-btn-summary">
+          <svg style="width:16px;height:16px;fill:currentColor" viewBox="0 0 24 24"><path d="M14 17H4v2h10v-2zm6-8H4v2h16V9zM4 15h16v-2H4v2zM4 5v2h16V5H4z"/></svg>
+          <span>Summary</span>
+        </div>
+        <div class="ai-tab" data-tab="translate" id="tab-btn-translate">
+          <svg style="width:16px;height:16px;fill:currentColor" viewBox="0 0 24 24"><path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/></svg>
+          <span>Translate</span>
+        </div>
+      </div>
+
+      <!-- Scrollable Tab Content Container -->
+      <div class="ai-body">
+        
+        <!-- DICTIONARY TAB CONTENT -->
+        <div class="ai-tab-content active" id="tab-content-dict">
+          <div class="dict-body" id="dict-body">
+            <div class="dict-not-found">
+              <div class="dict-not-found-icon">📖</div>
+              <div class="dict-not-found-msg">Double-click any word<br>to look it up</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUMMARIZER TAB CONTENT -->
+        <div class="ai-tab-content" id="tab-content-summary">
+          <div class="ai-control-group">
+            <div class="settings-label" style="margin-bottom:8px;">Scope</div>
+            <div class="scope-row">
+              <button class="scope-btn active" id="scope-sum-selection">Selection</button>
+              <button class="scope-btn" id="scope-sum-chapter">Chapter</button>
+              <button class="scope-btn" id="scope-sum-book">Book</button>
+            </div>
+            
+            <button class="btn-convert" id="btn-run-summary" style="padding:10px; font-size:13px; font-weight:600; margin-top:8px; box-shadow:none;">
+              <svg style="width:16px;height:16px;fill:currentColor" viewBox="0 0 24 24"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
+              <span>Summarize Now</span>
+            </button>
+          </div>
+          
+          <div class="ai-result-title">Summary Output</div>
+          <div class="ai-result-content" id="summary-output">
+            <p style="color:var(--text-secondary);font-style:italic;">No summary generated yet. Choose a scope and click "Summarize Now".</p>
+          </div>
+        </div>
+
+        <!-- TRANSLATOR TAB CONTENT -->
+        <div class="ai-tab-content" id="tab-content-translate">
+          <div class="ai-control-group">
+            <div class="settings-label" style="margin-bottom:6px;">Target Language</div>
+            <select class="form-input" id="translate-lang-select" style="margin-bottom:12px; padding:8px 12px; background:var(--bg-secondary); border-color:var(--border-color); font-weight:500;">
+              <option value="es" selected>Spanish (Español)</option>
+              <option value="fr">French (Français)</option>
+              <option value="de">German (Deutsch)</option>
+              <option value="it">Italian (Italiano)</option>
+              <option value="pt">Portuguese (Português)</option>
+              <option value="zh-CN">Chinese (Simplified) (中文)</option>
+              <option value="ja">Japanese (日本語)</option>
+              <option value="ko">Korean (한국어)</option>
+              <option value="ar">Arabic (العربية)</option>
+              <option value="ru">Russian (Русский)</option>
+              <option value="hi">Hindi (हिन्दी)</option>
+              <option value="tr">Turkish (Türkçe)</option>
+              <option value="nl">Dutch (Nederlands)</option>
+            </select>
+            
+            <div class="settings-label" style="margin-bottom:8px;">Scope</div>
+            <div class="scope-row">
+              <button class="scope-btn active" id="scope-trans-selection">Selection</button>
+              <button class="scope-btn" id="scope-trans-chapter">Chapter</button>
+              <button class="scope-btn" id="scope-trans-book">Book</button>
+            </div>
+            
+            <button class="btn-convert" id="btn-run-translate" style="padding:10px; font-size:13px; font-weight:600; margin-top:8px; box-shadow:none;">
+              <svg style="width:16px;height:16px;fill:currentColor" viewBox="0 0 24 24"><path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04z"/></svg>
+              <span>Translate Now</span>
+            </button>
+          </div>
+          
+          <div class="ai-result-title">Translation Output</div>
+          <div class="ai-result-content" id="translate-output">
+            <p style="color:var(--text-secondary);font-style:italic;">No translation generated yet. Choose target language, scope and click "Translate Now".</p>
+          </div>
+        </div>
+        
       </div>
     </aside>
 
   </div>
 
   <script>
-    // State Management
     let uploadedFile = null;
     let fileArrayBuffer = null;
     let currentTheme = 'light';
     let currentFontSize = 18;
     let currentLineHeight = 1.75;
-    
+
+    function scrollToElement(targetElem) {
+      if (!targetElem) return;
+      const canvas = document.getElementById('reader-canvas');
+      const offsetTop = targetElem.getBoundingClientRect().top - canvas.getBoundingClientRect().top + canvas.scrollTop;
+      canvas.scrollTo({ top: offsetTop - 20, behavior: 'smooth' });
+    }    
     // High-Fidelity PDF Viewer state
     let pdfDocumentInstance = null;
     let pdfPageObserver = null;
@@ -1883,7 +2096,7 @@
           e.preventDefault();
           const targetId = link.parentElement.getAttribute('data-target');
           const targetElem = document.getElementById(targetId);
-          if (targetElem) targetElem.scrollIntoView({ behavior: 'smooth' });
+          if (targetElem) scrollToElement(targetElem);
           
           // Auto-expand H1 chapters when clicked
           const group = link.closest('.toc-item-group');
@@ -2948,7 +3161,34 @@
       if (key === 'x') btnSizeDec.click();
       if (key === 'c') btnSizeReset.click();
       if (key === 'd') {
-        dictPanel.classList.toggle('open');
+        const isOpen = dictPanel.classList.contains('open');
+        const isDictActive = document.getElementById('tab-btn-dict').classList.contains('active');
+        if (isOpen && isDictActive) {
+          dictPanel.classList.remove('open');
+        } else {
+          dictPanel.classList.add('open');
+          document.getElementById('tab-btn-dict').click();
+        }
+      }
+      if (key === 's') {
+        const isOpen = dictPanel.classList.contains('open');
+        const isSumActive = document.getElementById('tab-btn-summary').classList.contains('active');
+        if (isOpen && isSumActive) {
+          dictPanel.classList.remove('open');
+        } else {
+          dictPanel.classList.add('open');
+          document.getElementById('tab-btn-summary').click();
+        }
+      }
+      if (key === 'a') {
+        const isOpen = dictPanel.classList.contains('open');
+        const isTransActive = document.getElementById('tab-btn-translate').classList.contains('active');
+        if (isOpen && isTransActive) {
+          dictPanel.classList.remove('open');
+        } else {
+          dictPanel.classList.add('open');
+          document.getElementById('tab-btn-translate').click();
+        }
       }
     });
 
@@ -3051,7 +3291,7 @@
           li.addEventListener('click', () => {
             const targetElem = document.getElementById(`pdf-page-${m.pageNum}`);
             if (targetElem) {
-              targetElem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              scrollToElement(targetElem);
               
               targetElem.style.outline = '3px solid var(--accent-color)';
               targetElem.style.outlineOffset = '2px';
@@ -3122,7 +3362,7 @@
           `;
           
           li.addEventListener('click', () => {
-            m.elem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+             scrollToElement(m.elem);
             m.elem.style.backgroundColor = 'var(--accent-light)';
             setTimeout(() => {
               m.elem.style.backgroundColor = 'transparent';
@@ -3195,13 +3435,56 @@
 
     // Double-click to look up a word
     articleContent.addEventListener('dblclick', async (e) => {
+      let word = '';
       const selection = window.getSelection();
-      let word = selection.toString().trim();
-      // Clean the word: remove punctuation, superscripts
+      if (selection && selection.toString().trim()) {
+        word = selection.toString().trim();
+      }
+      
+      // Fallback/improvement for headings and elements with text-transform/reference indices
+      if (!word || e.target.closest('.reader-heading')) {
+        let range;
+        if (document.caretRangeFromPoint) {
+          range = document.caretRangeFromPoint(e.clientX, e.clientY);
+        } else if (e.rangeParent) {
+          range = document.createRange();
+          range.setStart(e.rangeParent, e.rangeOffset);
+          range.setEnd(e.rangeParent, e.rangeOffset);
+        }
+        
+        if (range && range.startContainer.nodeType === Node.TEXT_NODE) {
+          const textNode = range.startContainer;
+          const offset = range.startOffset;
+          const text = textNode.nodeValue;
+          
+          let start = offset;
+          while (start > 0 && /[a-zA-Z0-9'-]/.test(text[start - 1])) {
+            start--;
+          }
+          let end = offset;
+          while (end < text.length && /[a-zA-Z0-9'-]/.test(text[end])) {
+            end++;
+          }
+          
+          const clickedWord = text.substring(start, end).trim();
+          if (clickedWord) {
+            word = clickedWord;
+          }
+        }
+      }
+
+      // Clean the word: remove punctuation, superscripts, digits
       word = word.replace(/[^a-zA-Z'-]/g, '');
       if (!word || word.length < 2 || word.length > 40) return;
 
       dictPanel.classList.add('open');
+      // Set the Dict tab as active if the AI panel is opened via double-click
+      document.querySelectorAll('.ai-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.ai-tab-content').forEach(c => c.classList.remove('active'));
+      document.getElementById('tab-btn-dict').classList.add('active');
+      document.getElementById('tab-content-dict').classList.add('active');
+      document.getElementById('ai-panel-title').textContent = "AI Assistant - Dictionary";
+
       dictBody.innerHTML = `
         <div class="dict-loading">
           <div class="spinner"></div>
@@ -3286,6 +3569,368 @@
       }
 
       dictBody.innerHTML = html;
+    }
+
+    // ===== AI ASSISTANT PANEL INTEGRATION =====
+    const aiTabs = document.querySelectorAll('.ai-tab');
+    const aiTabContents = document.querySelectorAll('.ai-tab-content');
+    const aiPanelTitle = document.getElementById('ai-panel-title');
+
+    // Tab Switching
+    aiTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        aiTabs.forEach(t => t.classList.remove('active'));
+        aiTabContents.forEach(c => c.classList.remove('active'));
+        
+        tab.classList.add('active');
+        const tabId = tab.getAttribute('data-tab');
+        document.getElementById(`tab-content-${tabId}`).classList.add('active');
+        
+        if (tabId === 'dict') aiPanelTitle.textContent = "AI Assistant - Dictionary";
+        else if (tabId === 'summary') aiPanelTitle.textContent = "AI Assistant - Summarizer";
+        else if (tabId === 'translate') aiPanelTitle.textContent = "AI Assistant - Translator";
+      });
+    });
+
+    // Scope Selection
+    let activeSummaryScope = 'selection';
+    let activeTranslateScope = 'selection';
+
+    document.getElementById('scope-sum-selection').addEventListener('click', () => setScope('summary', 'selection'));
+    document.getElementById('scope-sum-chapter').addEventListener('click', () => setScope('summary', 'chapter'));
+    document.getElementById('scope-sum-book').addEventListener('click', () => setScope('summary', 'book'));
+
+    document.getElementById('scope-trans-selection').addEventListener('click', () => setScope('translate', 'selection'));
+    document.getElementById('scope-trans-chapter').addEventListener('click', () => setScope('translate', 'chapter'));
+    document.getElementById('scope-trans-book').addEventListener('click', () => setScope('translate', 'book'));
+
+    function setScope(module, scope) {
+      if (module === 'summary') {
+        activeSummaryScope = scope;
+        document.querySelectorAll('#tab-content-summary .scope-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(`scope-sum-${scope}`).classList.add('active');
+      } else {
+        activeTranslateScope = scope;
+        document.querySelectorAll('#tab-content-translate .scope-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(`scope-trans-${scope}`).classList.add('active');
+      }
+    }
+
+    // Active Chapter Text Extractor (Unified PDF + HTML)
+    function getChapterText() {
+      const isPdf = document.querySelectorAll('.pdf-page-wrapper').length > 0;
+      const active = document.querySelector('.toc-item.active') || document.querySelector('.toc-item');
+      if (!active) {
+        return document.getElementById('article-content').innerText || "";
+      }
+      
+      if (isPdf) {
+        const startPage = parseInt(active.getAttribute('data-page')) || 1;
+        let endPage = pdfDocumentInstance ? pdfDocumentInstance.numPages : startPage;
+        const tocItems = Array.from(document.querySelectorAll('.toc-item'));
+        const activeIndex = tocItems.indexOf(active);
+        if (activeIndex !== -1) {
+          for (let i = activeIndex + 1; i < tocItems.length; i++) {
+            const pageVal = parseInt(tocItems[i].getAttribute('data-page'));
+            if (!isNaN(pageVal) && pageVal > startPage) {
+              endPage = pageVal - 1;
+              break;
+            }
+          }
+        }
+        const pagesText = [];
+        for (let p = startPage; p <= endPage; p++) {
+          const pageObj = pdfTextPages.find(item => item.pageNum === p);
+          if (pageObj) {
+            pagesText.push(pageObj.text);
+          }
+        }
+        return pagesText.join('\n');
+      } else {
+        const targetId = active.getAttribute('data-target');
+        const startElem = document.getElementById(targetId);
+        if (!startElem) {
+          return document.getElementById('article-content').innerText || "";
+        }
+        let textParts = [];
+        let current = startElem;
+        textParts.push(current.innerText || current.textContent || "");
+        
+        current = current.nextElementSibling;
+        const startLevel = parseInt(startElem.tagName.substring(1)) || 1;
+        
+        while (current) {
+          if (current.classList.contains('reader-heading')) {
+            const currentLevel = parseInt(current.tagName.substring(1)) || 1;
+            if (currentLevel <= startLevel) {
+              break;
+            }
+          }
+          textParts.push(current.innerText || current.textContent || "");
+          current = current.nextElementSibling;
+        }
+        return textParts.join('\n');
+      }
+    }
+
+    // Offline Extractive Summarizer
+    function localExtractiveSummarize(text, numSentences = 5) {
+      if (!text || text.trim().length === 0) return "No text available to summarize.";
+      
+      // Tokenize sentences
+      const sentences = text
+        .replace(/([.!?])\s*(?=[A-Z])/g, "$1|")
+        .split("|")
+        .map(s => s.trim())
+        .filter(s => s.length > 10);
+        
+      if (sentences.length === 0) return text;
+      if (sentences.length <= numSentences) return sentences.join(' ');
+      
+      // Compute normalized term frequencies
+      const words = text.toLowerCase().match(/[a-z0-9'-]+/g) || [];
+      const stopWords = new Set([
+        'i','me','my','myself','we','our','ours','ourselves','you','your','yours','yourself','yourselves',
+        'he','him','his','himself','she','her','hers','herself','it','its','itself','they','them','their',
+        'theirs','themselves','what','which','who','whom','this','that','these','those','am','is','are',
+        'was','were','be','been','being','have','has','had','having','do','does','did','doing','a','an',
+        'the','and','but','if','or','because','as','until','while','of','at','by','for','with','about',
+        'against','between','into','through','during','before','after','above','below','to','from','up',
+        'down','in','out','on','off','over','under','again','further','then','once','here','there','when',
+        'where','why','how','all','any','both','each','few','more','most','other','some','such','no',
+        'nor','not','only','own','same','so','than','too','very','s','t','can','will','just','don',
+        'should','now'
+      ]);
+      
+      const wordFreqs = {};
+      let maxFreq = 0;
+      words.forEach(w => {
+        if (w.length > 2 && !stopWords.has(w)) {
+          wordFreqs[w] = (wordFreqs[w] || 0) + 1;
+          if (wordFreqs[w] > maxFreq) {
+            maxFreq = wordFreqs[w];
+          }
+        }
+      });
+      
+      if (maxFreq > 0) {
+        for (const w in wordFreqs) {
+          wordFreqs[w] = wordFreqs[w] / maxFreq;
+        }
+      }
+      
+      // Score sentences
+      const sentenceScores = sentences.map((sentence, idx) => {
+        const sWords = sentence.toLowerCase().match(/[a-z0-9'-]+/g) || [];
+        let score = 0;
+        sWords.forEach(w => {
+          if (wordFreqs[w]) {
+            score += wordFreqs[w];
+          }
+        });
+        
+        if (idx < 2) score *= 1.3;
+        if (idx === sentences.length - 1) score *= 1.1;
+        
+        const lengthFactor = sWords.length > 0 ? Math.sqrt(sWords.length) : 1;
+        return {
+          index: idx,
+          sentence: sentence,
+          score: score / lengthFactor
+        };
+      });
+      
+      const sorted = [...sentenceScores].sort((a, b) => b.score - a.score);
+      const selected = sorted.slice(0, numSentences);
+      selected.sort((a, b) => a.index - b.index);
+      
+      return selected.map(item => `• ${item.sentence}`).join('\n\n');
+    }
+
+    // Asynchronous Summarizer Manager
+    async function summarizeText(text) {
+      if (window.ai && window.ai.summarizer) {
+        try {
+          const capabilities = await window.ai.summarizer.capabilities();
+          if (capabilities.available !== 'no') {
+            const summarizer = await window.ai.summarizer.create({
+              type: 'key-points',
+              format: 'markdown'
+            });
+            const summary = await summarizer.summarize(text);
+            summarizer.destroy();
+            return summary;
+          }
+        } catch (e) {
+          console.warn("Built-in AI summarizer failed, using extractive fallback:", e);
+        }
+      }
+      
+      const wordCount = text.split(/\s+/).length;
+      let count = 4;
+      if (wordCount > 1000) count = 6;
+      if (wordCount > 5000) count = 8;
+      return localExtractiveSummarize(text, count);
+    }
+
+    // Sentence-Bound Chunked Translator to bypass HTTP 414
+    async function translateText(text, targetLang) {
+      if (!text || text.trim().length === 0) return "No text available to translate.";
+      
+      const chunks = [];
+      let currentChunk = "";
+      
+      const sentences = text.match(/[^.!?]+[.!?]+(\s|$)/g) || [text];
+      
+      for (const sentence of sentences) {
+        if ((currentChunk + sentence).length > 1500) {
+          if (currentChunk.trim().length > 0) {
+            chunks.push(currentChunk);
+          }
+          currentChunk = sentence;
+        } else {
+          currentChunk += sentence;
+        }
+      }
+      if (currentChunk.trim().length > 0) {
+        chunks.push(currentChunk);
+      }
+      
+      const translatedChunks = await Promise.all(chunks.map(async (chunk) => {
+        try {
+          const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(chunk)}`;
+          const resp = await fetch(url);
+          if (!resp.ok) throw new Error('Translation failed');
+          const data = await resp.json();
+          if (data && data[0]) {
+            return data[0].map(segment => segment[0]).join('');
+          }
+          return chunk;
+        } catch (err) {
+          console.error("Chunk translation error:", err);
+          return chunk;
+        }
+      }));
+      
+      return translatedChunks.join('\n');
+    }
+
+    // Run Buttons Event Listeners
+    const btnRunSummary = document.getElementById('btn-run-summary');
+    const summaryOutput = document.getElementById('summary-output');
+
+    btnRunSummary.addEventListener('click', async () => {
+      let textToSummarize = "";
+      
+      if (activeSummaryScope === 'selection') {
+        const selection = window.getSelection().toString().trim();
+        if (!selection) {
+          summaryOutput.innerHTML = `<p style="color:var(--accent-color);font-weight:500;">Please select some text in the reader first, or choose "Chapter" or "Book" scope.</p>`;
+          return;
+        }
+        textToSummarize = selection;
+      } else if (activeSummaryScope === 'chapter') {
+        textToSummarize = getChapterText();
+        if (!textToSummarize || textToSummarize.trim().length === 0) {
+          summaryOutput.innerHTML = `<p style="color:var(--accent-color);font-weight:500;">Failed to extract active chapter text.</p>`;
+          return;
+        }
+      } else {
+        const isPdf = document.querySelectorAll('.pdf-page-wrapper').length > 0;
+        if (isPdf) {
+          textToSummarize = pdfTextPages.map(p => p.text).join('\n');
+        } else {
+          textToSummarize = document.getElementById('article-content').innerText || "";
+        }
+      }
+      
+      summaryOutput.innerHTML = `
+        <div class="dict-loading" style="padding:10px 0;">
+          <div class="spinner"></div>
+          <div>Generating summary (${textToSummarize.split(/\s+/).length} words)...</div>
+        </div>`;
+      
+      try {
+        const summary = await summarizeText(textToSummarize);
+        let formatted = "";
+        if (summary.includes('•')) {
+          const listItems = summary
+            .split('\n')
+            .map(s => s.trim())
+            .filter(s => s.startsWith('•') || s.startsWith('-'))
+            .map(s => `<li>${escapeHtml(s.replace(/^[•-]\s*/, ''))}</li>`)
+            .join('');
+          formatted = `<ul style="margin:0; padding-left:20px; color:var(--text-primary); line-height:1.65;">${listItems}</ul>`;
+        } else {
+          formatted = summary
+            .split('\n\n')
+            .map(p => `<p style="margin-bottom:12px; color:var(--text-primary);">${escapeHtml(p)}</p>`)
+            .join('');
+        }
+        summaryOutput.innerHTML = formatted;
+      } catch (err) {
+        summaryOutput.innerHTML = `<p style="color:var(--accent-color);font-weight:500;">Summary generation failed: ${err.message}</p>`;
+      }
+    });
+
+    const btnRunTranslate = document.getElementById('btn-run-translate');
+    const translateOutput = document.getElementById('translate-output');
+    const translateLangSelect = document.getElementById('translate-lang-select');
+
+    btnRunTranslate.addEventListener('click', async () => {
+      let textToTranslate = "";
+      const targetLang = translateLangSelect.value;
+      
+      if (activeTranslateScope === 'selection') {
+        const selection = window.getSelection().toString().trim();
+        if (!selection) {
+          translateOutput.innerHTML = `<p style="color:var(--accent-color);font-weight:500;">Please select some text in the reader first, or choose "Chapter" or "Book" scope.</p>`;
+          return;
+        }
+        textToTranslate = selection;
+      } else if (activeTranslateScope === 'chapter') {
+        textToTranslate = getChapterText();
+        if (!textToTranslate || textToTranslate.trim().length === 0) {
+          translateOutput.innerHTML = `<p style="color:var(--accent-color);font-weight:500;">Failed to extract active chapter text.</p>`;
+          return;
+        }
+      } else {
+        const isPdf = document.querySelectorAll('.pdf-page-wrapper').length > 0;
+        if (isPdf) {
+          textToTranslate = pdfTextPages.map(p => p.text).join('\n');
+        } else {
+          textToTranslate = document.getElementById('article-content').innerText || "";
+        }
+      }
+      
+      translateOutput.innerHTML = `
+        <div class="dict-loading" style="padding:10px 0;">
+          <div class="spinner"></div>
+          <div>Translating text (${textToTranslate.split(/\s+/).length} words)...</div>
+        </div>`;
+      
+      try {
+        const translation = await translateText(textToTranslate, targetLang);
+        const formatted = translation
+          .split('\n')
+          .map(p => p.trim())
+          .filter(p => p.length > 0)
+          .map(p => `<p style="margin-bottom:12px; color:var(--text-primary);">${escapeHtml(p)}</p>`)
+          .join('');
+        translateOutput.innerHTML = formatted;
+      } catch (err) {
+        translateOutput.innerHTML = `<p style="color:var(--accent-color);font-weight:500;">Translation failed: ${err.message}</p>`;
+      }
+    });
+
+    function escapeHtml(str) {
+      if (!str) return "";
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
     }
 
     // Click on a synonym/antonym pill to look it up
