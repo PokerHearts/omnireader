@@ -17,6 +17,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf_viewer.min.css">
   
   <style>
     /* Global CSS variables & Reset */
@@ -1114,6 +1115,266 @@
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
+
+    /* Responsive Table Styles inside Reader */
+    .reader-table-container {
+      width: 100%;
+      overflow-x: auto;
+      margin: 28px 0;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+      background-color: var(--bg-secondary);
+      transition: background-color 0.3s, border-color 0.3s;
+    }
+
+    .reader-table-container table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9em;
+      text-align: left;
+      font-family: var(--font-sans);
+    }
+
+    .reader-table-container table,
+    .reader-table-container tr,
+    .reader-table-container td,
+    .reader-table-container th {
+      background-color: transparent !important;
+      color: inherit !important;
+      border-color: var(--border-color) !important;
+    }
+
+    .reader-table-container th, 
+    .reader-table-container td {
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .reader-table-container th {
+      background-color: var(--accent-light) !important;
+      color: var(--accent-color) !important;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 0.8em;
+      letter-spacing: 0.08em;
+    }
+
+    .reader-table-container tr:last-child td {
+      border-bottom: none;
+    }
+
+    .reader-table-container tr:hover td {
+      background-color: rgba(227, 62, 90, 0.02);
+    }
+
+    #reader-panel[data-theme="dark"] .reader-table-container tr:hover td {
+      background-color: rgba(229, 193, 88, 0.04);
+    }
+
+    #reader-panel[data-theme="sepia"] .reader-table-container tr:hover td {
+      background-color: rgba(140, 98, 57, 0.04);
+    }
+
+    /* Premium Image Styling inside Reader */
+    .reader-image-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 36px 0;
+      gap: 10px;
+    }
+
+    .reader-image {
+      max-width: 100%;
+      height: auto;
+      border-radius: 14px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      border: 1px solid var(--border-color);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .reader-image:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.12);
+    }
+
+    .reader-image-caption {
+      font-size: 0.8em;
+      color: var(--text-secondary);
+      font-style: italic;
+      text-align: center;
+      max-width: 80%;
+      line-height: 1.4;
+    }
+
+    /* Premium block elements styling */
+    .reader-blockquote {
+      border-left: 4px solid var(--accent-color);
+      padding: 16px 24px;
+      margin: 28px 0;
+      font-style: italic;
+      background-color: var(--bg-secondary);
+      color: var(--text-secondary);
+      border-radius: 4px;
+    }
+    .reader-blockquote, .reader-blockquote * {
+      background-color: transparent !important;
+      color: inherit !important;
+    }
+
+    .reader-code-container {
+      margin: 28px 0;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+      background-color: var(--bg-secondary);
+    }
+    .reader-code-container pre {
+      padding: 16px;
+      overflow-x: auto;
+      font-family: monospace, Courier, monospace;
+      font-size: 0.9em;
+      color: var(--text-primary);
+    }
+
+    .reader-figure-container figure {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 36px 0;
+      gap: 12px;
+    }
+    .reader-figure-container img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 14px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      border: 1px solid var(--border-color);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .reader-figure-container img:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.12);
+    }
+    .reader-figure-container figcaption {
+      font-size: 0.8em;
+      color: var(--text-secondary);
+      font-style: italic;
+      text-align: center;
+      max-width: 80%;
+      line-height: 1.4;
+    }
+
+    .reader-svg-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 36px 0;
+      max-width: 100%;
+      overflow-x: auto;
+    }
+    .reader-svg-container svg {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+    }
+
+    .reader-formula-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 28px 0;
+      padding: 16px;
+      background-color: var(--bg-secondary);
+      border-radius: 8px;
+      overflow-x: auto;
+      border: 1px dashed var(--border-color);
+    }
+
+    .reader-aside {
+      padding: 16px 20px;
+      margin: 28px 0;
+      background-color: var(--accent-light);
+      border-left: 4px solid var(--accent-color);
+      border-radius: 0 8px 8px 0;
+      font-size: 0.95em;
+      line-height: 1.6;
+    }
+    .reader-aside, .reader-aside * {
+      color: inherit !important;
+    }
+
+    .reader-container ul, .reader-container ol {
+      margin-bottom: 20px;
+      padding-left: 32px;
+    }
+    .reader-container li {
+      margin-bottom: 8px;
+      color: var(--text-primary);
+    }
+
+    /* High-Fidelity PDF Page Styling */
+    .pdf-page-wrapper {
+      position: relative;
+      margin: 32px auto;
+      background: #ffffff;
+      box-shadow: 0 10px 35px rgba(0, 0, 0, 0.15);
+      border-radius: 4px;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: transform 0.2s;
+    }
+
+    .pdf-page-wrapper canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .pdf-page-wrapper .textLayer {
+      opacity: 1;
+    }
+
+    .textLayer ::selection {
+      background: rgba(227, 62, 90, 0.3) !important;
+    }
+    #reader-panel[data-theme="dark"] .textLayer ::selection {
+      background: rgba(229, 193, 88, 0.3) !important;
+    }
+    #reader-panel[data-theme="sepia"] .textLayer ::selection {
+      background: rgba(140, 98, 57, 0.3) !important;
+    }
+
+    .pdf-loading-placeholder {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      color: #6e6b64;
+      font-size: 14px;
+      font-weight: 500;
+      z-index: 10;
+    }
+
+    /* Premium Theme Filters for PDF Pages */
+    #reader-panel[data-theme="dark"] .pdf-page-wrapper {
+      filter: invert(0.9) hue-rotate(180deg);
+      background: #121212;
+      box-shadow: 0 10px 35px rgba(0, 0, 0, 0.5);
+    }
+    #reader-panel[data-theme="sepia"] .pdf-page-wrapper {
+      filter: sepia(0.4) contrast(0.95) saturate(1.1);
+      background: #f4ecd8;
+    }
+    #reader-panel[data-theme="velvet"] .pdf-page-wrapper {
+      filter: sepia(0.3) hue-rotate(330deg) contrast(0.9) brightness(0.8);
+      background: #1d070b;
+    }
   </style>
 </head>
 <body>
@@ -1335,6 +1596,82 @@
     let currentFontSize = 18;
     let currentLineHeight = 1.75;
     
+    // High-Fidelity PDF Viewer state
+    let pdfDocumentInstance = null;
+    let pdfPageObserver = null;
+    let renderedPagesSet = new Set();
+    let pdfTextPages = []; // Cache of text per page for search: { pageNum, text }
+    
+    // --- IndexedDB Offline File Storage ---
+    const DB_NAME = 'OmniReaderDb';
+    const DB_VERSION = 1;
+    const STORE_NAME = 'documents';
+
+    function initDb() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+        request.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains(STORE_NAME)) {
+            db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+          }
+        };
+        request.onsuccess = (e) => resolve(e.target.result);
+        request.onerror = (e) => reject(e.target.error);
+      });
+    }
+
+    async function saveFileToDb(arrayBuffer, fileName, title, author, fileExt) {
+      try {
+        const db = await initDb();
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        const data = {
+          id: 'current-book',
+          arrayBuffer,
+          fileName,
+          title,
+          author,
+          fileExt,
+          timestamp: Date.now()
+        };
+        store.put(data);
+        return new Promise((resolve, reject) => {
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => reject(tx.error);
+        });
+      } catch (e) {
+        console.error('IndexedDB save failed:', e);
+      }
+    }
+
+    async function getFileFromDb() {
+      try {
+        const db = await initDb();
+        const tx = db.transaction(STORE_NAME, 'readonly');
+        const store = tx.objectStore(STORE_NAME);
+        const request = store.get('current-book');
+        return new Promise((resolve, reject) => {
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+        });
+      } catch (e) {
+        console.error('IndexedDB get failed:', e);
+        return null;
+      }
+    }
+
+    async function clearDb() {
+      try {
+        const db = await initDb();
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        store.delete('current-book');
+      } catch (e) {
+        console.error('IndexedDB clear failed:', e);
+      }
+    }
+    
     // Core DOM references
     const uploadContainer = document.getElementById('upload-container');
     const uploadZone = document.getElementById('upload-zone');
@@ -1446,32 +1783,56 @@
           showProgress("Parsing PDF...", "Initializing Mozilla PDF.js core...");
           const res = await parsePdf(fileArrayBuffer);
           pageCount = res.pageCount;
-          blocks = rebuildBlocksFromLines(res.allLines);
+          pdfDocumentInstance = res.pdf;
+          pdfTextPages = res.textPages;
+          
+          // Build TOC from outlines
+          const tocHtml = renderParsedOutlineToc(await parseOutlineItems(res.outline), pageCount);
+          
+          // Build content page wrappers
+          let contentHtml = "";
+          for (let i = 1; i <= pageCount; i++) {
+            contentHtml += `
+              <div class="pdf-page-wrapper" data-page="${i}" id="pdf-page-${i}" style="width: 100%; position: relative; margin: 32px auto;">
+                <div class="pdf-loading-placeholder" id="pdf-placeholder-${i}">Loading Page ${i}...</div>
+              </div>\n`;
+          }
+          
+          loadBookIntoReader(title, author, pageCount, tocHtml, contentHtml, res.readingTime);
+          saveBookToStorage(title, author, pageCount, tocHtml, contentHtml, res.readingTime);
+          await saveFileToDb(fileArrayBuffer, uploadedFile.name, title, author, fileExt);
         } else if (fileExt === '.docx') {
           showProgress("Parsing Word Document...", "Converting DOCX schemas via Mammoth.js...");
           blocks = await parseDocx(fileArrayBuffer);
+          
+          showProgress("Formatting E-Reader UI...", "Injecting layout structure...");
+          const compiled = compileHtmlReader(blocks, title, author, pageCount);
+          loadBookIntoReader(title, author, pageCount, compiled.tocHtml, compiled.contentHtml, compiled.readingTime);
+          saveBookToStorage(title, author, pageCount, compiled.tocHtml, compiled.contentHtml, compiled.readingTime);
+          await saveFileToDb(fileArrayBuffer, uploadedFile.name, title, author, fileExt);
         } else if (fileExt === '.epub') {
           showProgress("Parsing EPUB Archive...", "Extracting spine XHTML documents...");
           blocks = await parseEpub(fileArrayBuffer);
+          
+          showProgress("Formatting E-Reader UI...", "Injecting layout structure...");
+          const compiled = compileHtmlReader(blocks, title, author, pageCount);
+          loadBookIntoReader(title, author, pageCount, compiled.tocHtml, compiled.contentHtml, compiled.readingTime);
+          saveBookToStorage(title, author, pageCount, compiled.tocHtml, compiled.contentHtml, compiled.readingTime);
+          await saveFileToDb(fileArrayBuffer, uploadedFile.name, title, author, fileExt);
         } else if (fileExt === '.txt') {
           showProgress("Parsing Plain Text...", "Structuring paragraphs...");
           blocks = await parseTxt(fileArrayBuffer);
+          
+          showProgress("Formatting E-Reader UI...", "Injecting layout structure...");
+          const compiled = compileHtmlReader(blocks, title, author, pageCount);
+          loadBookIntoReader(title, author, pageCount, compiled.tocHtml, compiled.contentHtml, compiled.readingTime);
+          saveBookToStorage(title, author, pageCount, compiled.tocHtml, compiled.contentHtml, compiled.readingTime);
+          await saveFileToDb(fileArrayBuffer, uploadedFile.name, title, author, fileExt);
         } else {
           alert("Unsupported file format");
           hideProgress();
           return;
         }
-        
-        showProgress("Formatting E-Reader UI...", "Injecting layout structure...");
-        
-        // Compile the tree structured content
-        const compiled = compileHtmlReader(blocks, title, author, pageCount);
-        
-        // Load into Integrated SPA Reader
-        loadBookIntoReader(title, author, pageCount, compiled.tocHtml, compiled.contentHtml, compiled.readingTime);
-        
-        // Save book details to localStorage so it persists!
-        saveBookToStorage(title, author, pageCount, compiled.tocHtml, compiled.contentHtml, compiled.readingTime);
         
         hideProgress();
         
@@ -1533,33 +1894,58 @@
       });
 
       // 4. Setup scroll tracking IntersectionObserver
-      const headings = document.querySelectorAll('.reader-heading');
-      const headingObserver = new IntersectionObserver(entries => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            const id = entry.target.getAttribute('id');
-            document.querySelectorAll('.toc-item').forEach(item => {
-              if (item.getAttribute('data-target') === id) {
-                item.classList.add('active');
-                item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-                
-                // Auto-expand the active section group
-                const group = item.closest('.toc-item-group');
-                if (group) {
-                  document.querySelectorAll('.toc-item-group').forEach(g => {
-                    if (g !== group) g.classList.remove('expanded');
-                  });
-                  group.classList.add('expanded');
+      const isPdf = document.querySelectorAll('.pdf-page-wrapper').length > 0;
+      
+      if (isPdf) {
+        const pageObserver = new IntersectionObserver(entries => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              const pageNum = entry.target.getAttribute('data-page');
+              document.querySelectorAll('.toc-item').forEach(item => {
+                if (item.getAttribute('data-page') === pageNum) {
+                  item.classList.add('active');
+                  item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                } else {
+                  item.classList.remove('active');
                 }
-              } else {
-                item.classList.remove('active');
-              }
-            });
-          }
-        });
-      }, { threshold: 0.1, rootMargin: '0px 0px -70% 0px' });
+              });
+            }
+          });
+        }, { threshold: 0.1, rootMargin: '0px 0px -50% 0px' });
+        
+        document.querySelectorAll('.pdf-page-wrapper').forEach(p => pageObserver.observe(p));
+        
+        // Initialize lazy loader
+        initPdfLazyLoader();
+      } else {
+        const headings = document.querySelectorAll('.reader-heading');
+        const headingObserver = new IntersectionObserver(entries => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              const id = entry.target.getAttribute('id');
+              document.querySelectorAll('.toc-item').forEach(item => {
+                if (item.getAttribute('data-target') === id) {
+                  item.classList.add('active');
+                  item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                  
+                  // Auto-expand the active section group
+                  const group = item.closest('.toc-item-group');
+                  if (group) {
+                    document.querySelectorAll('.toc-item-group').forEach(g => {
+                      if (g !== group) g.classList.remove('expanded');
+                    });
+                    group.classList.add('expanded');
+                  }
+                } else {
+                  item.classList.remove('active');
+                }
+              });
+            }
+          });
+        }, { threshold: 0.1, rootMargin: '0px 0px -70% 0px' });
 
-      headings.forEach(heading => headingObserver.observe(heading));
+        headings.forEach(heading => headingObserver.observe(heading));
+      }
 
       // 5. Switch visible Panels
       document.body.classList.add('reader-active');
@@ -1573,6 +1959,16 @@
     btnCloseReader.addEventListener('click', () => {
       // Clear persistence
       localStorage.removeItem('reader-saved-book');
+      clearDb();
+      
+      // Reset PDF viewer states
+      pdfDocumentInstance = null;
+      if (pdfPageObserver) {
+        pdfPageObserver.disconnect();
+        pdfPageObserver = null;
+      }
+      renderedPagesSet.clear();
+      pdfTextPages = [];
       
       // Reset upload inputs
       uploadedFile = null;
@@ -1596,14 +1992,49 @@
       }
     }
 
-    window.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('DOMContentLoaded', async () => {
       const savedBook = localStorage.getItem('reader-saved-book');
       if (savedBook) {
         try {
           const { title, author, pageCount, tocHtml, contentHtml, readingTime } = JSON.parse(savedBook);
-          loadBookIntoReader(title, author, pageCount, tocHtml, contentHtml, readingTime);
+          
+          // Retrieve actual ArrayBuffer and file details from IndexedDB
+          const dbRecord = await getFileFromDb();
+          if (dbRecord) {
+            fileArrayBuffer = dbRecord.arrayBuffer;
+            uploadedFile = { name: dbRecord.fileName };
+            
+            const fileExt = dbRecord.fileExt;
+            if (fileExt === '.pdf') {
+              const pdfjsLib = window['pdfjs-dist/build/pdf'];
+              pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+              pdfDocumentInstance = await pdfjsLib.getDocument({ data: fileArrayBuffer }).promise;
+              
+              // Recache plain-text per page for search
+              pdfTextPages = [];
+              for (let i = 1; i <= pdfDocumentInstance.numPages; i++) {
+                const page = await pdfDocumentInstance.getPage(i);
+                const textContent = await page.getTextContent();
+                const text = textContent.items.map(item => item.str).join(' ');
+                pdfTextPages.push({ pageNum: i, text });
+              }
+              
+              loadBookIntoReader(title, author, pageCount, tocHtml, contentHtml, readingTime);
+            } else if (fileExt === '.epub') {
+              // EPUB Blob URLs expire, so we MUST re-parse and recompile
+              const blocks = await parseEpub(fileArrayBuffer);
+              const compiled = compileHtmlReader(blocks, title, author, pageCount);
+              loadBookIntoReader(title, author, pageCount, compiled.tocHtml, compiled.contentHtml, compiled.readingTime);
+            } else {
+              loadBookIntoReader(title, author, pageCount, tocHtml, contentHtml, readingTime);
+            }
+          } else {
+            loadBookIntoReader(title, author, pageCount, tocHtml, contentHtml, readingTime);
+          }
         } catch (e) {
+          console.error("Failed to restore saved book:", e);
           localStorage.removeItem('reader-saved-book');
+          clearDb();
         }
       }
     });
@@ -1617,179 +2048,259 @@
       
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
       const pageCount = pdf.numPages;
-      let allLines = [];
       
+      // Extract bookmarks outline
+      let outline = [];
+      try {
+        outline = await pdf.getOutline();
+      } catch (e) {
+        console.warn("Failed to get outline:", e);
+      }
+      
+      // Extract text pages for full text search cache
+      const textPages = [];
+      let totalWords = 0;
       for (let i = 1; i <= pageCount; i++) {
-        showProgress("Extracting PDF Text...", `Page ${i} of ${pageCount}...`);
+        showProgress("Caching PDF Text...", `Page ${i} of ${pageCount}...`);
         const page = await pdf.getPage(i);
         const textContent = await page.getTextContent();
-        
-        const items = textContent.items;
-        const linesMap = {};
-        
-        items.forEach(item => {
-          const y = item.transform[5];
-          let foundKey = null;
-          for (let key in linesMap) {
-            if (Math.abs(parseFloat(key) - y) < 4) {
-              foundKey = key;
-              break;
-            }
-          }
-          if (foundKey === null) {
-            foundKey = y.toString();
-            linesMap[foundKey] = [];
-          }
-          linesMap[foundKey].push(item);
-        });
-        
-        const sortedY = Object.keys(linesMap).sort((a, b) => parseFloat(b) - parseFloat(a));
-        
-        let pageLines = [];
-        sortedY.forEach(y => {
-          const lineItems = linesMap[y];
-          lineItems.sort((a, b) => a.transform[4] - b.transform[4]);
-          
-          let lineText = "";
-          lineItems.forEach((item, idx) => {
-            if (idx > 0) {
-              const prev = lineItems[idx - 1];
-              const prevRight = prev.transform[4] + (prev.width || 0);
-              const currentLeft = item.transform[4];
-              if (currentLeft - prevRight > 1.5) {
-                lineText += " " + item.str;
-              } else {
-                lineText += item.str;
-              }
-            } else {
-              lineText += item.str;
-            }
-          });
-          
-          lineText = lineText.trim();
-          if (lineText) {
-            pageLines.push(lineText);
-          }
-        });
-        
-        if (pageLines.length > 0) {
-          if (isRunningHeader(pageLines[0])) {
-            pageLines.shift();
-          }
-          pageLines.forEach(line => allLines.push(line));
-        }
+        const text = textContent.items.map(item => item.str).join(' ');
+        textPages.push({ pageNum: i, text });
+        totalWords += text.split(/\s+/).length;
       }
       
-      return { allLines, pageCount };
+      const readingTime = Math.max(1, Math.ceil(totalWords / 200));
+      
+      return { pdf, pageCount, outline, textPages, readingTime };
     }
 
-    function isRunningHeader(line) {
-      const trimmed = line.trim();
-      if (!trimmed) return false;
-      if (/^\d+\s+[A-Za-z\s]+$/i.test(trimmed)) return true;
-      if (/^[A-Za-z\s]+\s+\d+$/i.test(trimmed)) return true;
-      if (/^[ivxldcm]+\s+[A-Za-z\s]+$/i.test(trimmed)) return true;
-      if (/^[A-Za-z\s]+\s+[ivxldcm]+$/i.test(trimmed)) return true;
-      return false;
+    async function resolvePdfDest(dest) {
+      if (!dest) return null;
+      let destArray = dest;
+      if (typeof dest === 'string') {
+        destArray = await pdfDocumentInstance.getDestination(dest);
+      }
+      if (Array.isArray(destArray) && destArray.length > 0) {
+        const destRef = destArray[0];
+        if (destRef && typeof destRef === 'object') {
+          try {
+            const pageIndex = await pdfDocumentInstance.getPageIndex(destRef);
+            return pageIndex + 1; // pageNum is 1-indexed
+          } catch (e) {
+            console.warn("Failed to get page index for destRef", e);
+          }
+        }
+      }
+      return null;
     }
 
-    function rebuildBlocksFromLines(allLines) {
-      let blocks = [];
-      let currentBlock = null;
-      
-      function flushCurrentBlock() {
-        if (currentBlock) {
-          blocks.push(currentBlock);
-          currentBlock = null;
+    async function parseOutlineItems(items) {
+      if (!items || items.length === 0) return [];
+      const parsed = [];
+      for (const item of items) {
+        let pageNum = null;
+        if (item.dest) {
+          pageNum = await resolvePdfDest(item.dest);
         }
+        const children = await parseOutlineItems(item.items);
+        parsed.push({
+          title: item.title,
+          pageNum: pageNum,
+          children: children
+        });
+      }
+      return parsed;
+    }
+
+    function renderParsedOutlineToc(parsedItems, pageCount) {
+      function escapeHtml(str) {
+        if (!str) return "";
+        return str
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      if (!parsedItems || parsedItems.length === 0) {
+        // Fallback: list of pages
+        let html = `<div class="toc-title">Table of Contents</div>\n<ul class="toc-list">\n`;
+        for (let i = 1; i <= pageCount; i += 10) {
+          const limit = Math.min(i + 9, pageCount);
+          html += `  <li class="toc-item-group">\n`;
+          html += `    <div class="toc-item toc-indent-1" data-page="${i}" data-target="pdf-page-${i}">\n`;
+          html += `      <span class="toc-dot"></span>\n`;
+          html += `      <a href="#pdf-page-${i}">Pages ${i}-${limit}</a>\n`;
+          html += `    </div>\n`;
+          html += `  </li>\n`;
+        }
+        html += `</ul>\n`;
+        return html;
+      }
+
+      function buildHtml(items, level = 1) {
+        let html = '';
+        items.forEach(chapter => {
+          const hasChildren = chapter.children && chapter.children.length > 0;
+          const toggleBtn = hasChildren 
+            ? `<button class="toc-toggle-btn" aria-label="Toggle section"><svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg></button>` 
+            : `<span class="toc-dot"></span>`;
+          
+          const targetPage = chapter.pageNum || 1;
+          
+          html += `  <li class="toc-item-group ${hasChildren ? 'has-sub' : ''}">\n`;
+          html += `    <div class="toc-item toc-indent-${level}" data-page="${targetPage}" data-target="pdf-page-${targetPage}">\n`;
+          html += `      ${toggleBtn}\n`;
+          html += `      <a href="#pdf-page-${targetPage}">${escapeHtml(chapter.title)}</a>\n`;
+          html += `    </div>\n`;
+          
+          if (hasChildren) {
+            html += `    <ul class="toc-sublist">\n`;
+            html += buildHtml(chapter.children, level + 1);
+            html += `    </ul>\n`;
+          }
+          
+          html += `  </li>\n`;
+        });
+        return html;
+      }
+
+      let tocHtml = `<div class="toc-title">Table of Contents</div>\n<ul class="toc-list">\n`;
+      tocHtml += buildHtml(parsedItems);
+      tocHtml += "</ul>\n";
+      return tocHtml;
+    }
+
+    function initPdfLazyLoader() {
+      if (pdfPageObserver) {
+        pdfPageObserver.disconnect();
       }
       
-      for (let idx = 0; idx < allLines.length; idx++) {
-        const line = allLines[idx];
-        
-        let isHeading = false;
-        let headingLevel = 3;
-        let headingText = "";
-        
-        if (/^(?:CHAPTER\s+)?\d+$/i.test(line) && idx + 1 < allLines.length) {
-          const next = allLines[idx + 1];
-          if (/^[A-Z][A-Za-z\s:&,()—\-]{3,60}$/.test(next)) {
-            isHeading = true;
-            headingLevel = 1;
-            headingText = "Chapter " + line.replace(/CHAPTER\s+/i, "") + ": " + next;
-            idx++;
-            flushCurrentBlock();
-            blocks.push({ type: "heading", level: headingLevel, text: headingText });
-            continue;
+      renderedPagesSet.clear();
+      
+      pdfPageObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const pageNum = parseInt(entry.target.getAttribute('data-page'));
+            if (!renderedPagesSet.has(pageNum)) {
+              renderedPagesSet.add(pageNum);
+              renderPdfPage(pageNum, entry.target);
+            }
           }
+        });
+      }, {
+        root: canvas,
+        rootMargin: '1000px 0px 1000px 0px',
+        threshold: 0.01
+      });
+      
+      document.querySelectorAll('.pdf-page-wrapper').forEach(wrapper => {
+        pdfPageObserver.observe(wrapper);
+      });
+    }
+
+    async function renderPdfPage(pageNum, wrapper) {
+      if (!pdfDocumentInstance) return;
+      
+      try {
+        const page = await pdfDocumentInstance.getPage(pageNum);
+        
+        const containerWidth = document.getElementById('reader-container').clientWidth;
+        const viewport = page.getViewport({ scale: 1.5 });
+        const scale = containerWidth / viewport.width;
+        const scaledViewport = page.getViewport({ scale: scale * 1.5 });
+        
+        wrapper.style.width = `${containerWidth}px`;
+        wrapper.style.height = `${scaledViewport.height}px`;
+        
+        const placeholder = wrapper.querySelector('.pdf-loading-placeholder');
+        
+        const canvasElement = document.createElement('canvas');
+        canvasElement.width = scaledViewport.width;
+        canvasElement.height = scaledViewport.height;
+        canvasElement.style.width = '100%';
+        canvasElement.style.height = '100%';
+        wrapper.appendChild(canvasElement);
+        
+        const context = canvasElement.getContext('2d');
+        
+        const renderContext = {
+          canvasContext: context,
+          viewport: scaledViewport
+        };
+        await page.render(renderContext).promise;
+        
+        const textLayerDiv = document.createElement('div');
+        textLayerDiv.className = 'textLayer';
+        textLayerDiv.style.width = `${scaledViewport.width}px`;
+        textLayerDiv.style.height = `${scaledViewport.height}px`;
+        textLayerDiv.style.position = 'absolute';
+        textLayerDiv.style.top = '0';
+        textLayerDiv.style.left = '0';
+        wrapper.appendChild(textLayerDiv);
+        
+        const textContent = await page.getTextContent();
+        const pdfjsLib = window['pdfjs-dist/build/pdf'];
+        await pdfjsLib.renderTextLayer({
+          textContent: textContent,
+          container: textLayerDiv,
+          viewport: scaledViewport,
+          textDivs: []
+        }).promise;
+        
+        if (activeSearchQuery) {
+          highlightTextLayerMatches(textLayerDiv, activeSearchQuery);
         }
         
-        if (/^CHAPTER\s+\d+:\s+(.+)$/i.test(line)) {
-          isHeading = true;
-          headingLevel = 1;
-          headingText = line;
-        } else if (/^[A-Z\s:&,()—\-]{5,80}$/.test(line) && line === line.toUpperCase()) {
-          isHeading = true;
-          headingLevel = 2;
-          headingText = line;
-        } else if (/^(?:\d+\.\d+(?:\.\d+)?)\s+[A-Z][A-Za-z\s:&,()—\-]+$/.test(line)) {
-          isHeading = true;
-          headingLevel = 3;
-          headingText = line;
+        if (placeholder) {
+          placeholder.remove();
         }
-        
-        if (isHeading) {
-          flushCurrentBlock();
-          blocks.push({ type: "heading", level: headingLevel, text: headingText });
-          continue;
-        }
-        
-        const listMatch = line.match(/^(\d+\.|[a-z]\.|\([a-z0-9]+\)|\*|\-)\s+(.*)$/i);
-        if (listMatch) {
-          flushCurrentBlock();
-          currentBlock = {
-            type: "list-item",
-            marker: listMatch[1],
-            text: listMatch[2],
-            lastLine: line
-          };
-          continue;
-        }
-        
-        if (currentBlock && (currentBlock.type === "paragraph" || currentBlock.type === "list-item")) {
-          if (currentBlock.lastLine.endsWith("-") && /^[a-z]/.test(line)) {
-            currentBlock.text = currentBlock.text.slice(0, -1) + line;
-          } else {
-            currentBlock.text += " " + line;
-          }
-          currentBlock.lastLine = line;
-          
-          const endsWithPunct = /[.;!?]$/.test(line);
-          if (line.length < 65 && endsWithPunct) {
-            flushCurrentBlock();
-          }
-        } else {
-          currentBlock = {
-            type: "paragraph",
-            text: line,
-            lastLine: line
-          };
-          
-          const endsWithPunct = /[.!?]$/.test(line);
-          if (line.length < 65 && endsWithPunct) {
-            flushCurrentBlock();
-          }
+      } catch (err) {
+        console.error(`Error rendering PDF page ${pageNum}:`, err);
+        const placeholder = wrapper.querySelector('.pdf-loading-placeholder');
+        if (placeholder) {
+          placeholder.textContent = `Error loading Page ${pageNum}`;
         }
       }
-      flushCurrentBlock();
-      return blocks;
+    }
+
+    function highlightTextLayerMatches(textLayerDiv, query) {
+      if (!query) return;
+      const escapedQuery = query.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+      const regex = new RegExp('(' + escapedQuery + ')', 'gi');
+      
+      const spans = textLayerDiv.querySelectorAll('span');
+      spans.forEach(span => {
+        if (regex.test(span.textContent)) {
+          span.innerHTML = span.innerHTML.replace(regex, '<mark>$1</mark>');
+        }
+      });
+    }
+
+    function highlightAllTextLayers(query) {
+      document.querySelectorAll('.pdf-page-wrapper').forEach(wrapper => {
+        const textLayerDiv = wrapper.querySelector('.textLayer');
+        if (textLayerDiv) {
+          highlightTextLayerMatches(textLayerDiv, query);
+        }
+      });
+    }
+
+    function clearTextLayerHighlights() {
+      document.querySelectorAll('.pdf-page-wrapper .textLayer').forEach(textLayerDiv => {
+        const spans = textLayerDiv.querySelectorAll('span');
+        spans.forEach(span => {
+          span.innerHTML = span.innerHTML.replace(/<mark>([^<]*)<\/mark>/gi, '$1');
+        });
+      });
     }
 
     // DOCX parser
     async function parseDocx(arrayBuffer) {
       const result = await mammoth.convertToHtml({ arrayBuffer: arrayBuffer });
       const html = result.value;
-      return parseHtmlStructureToBlocks(html);
+      return await parseHtmlStructureToBlocks(html);
     }
 
     // EPUB parser
@@ -1835,7 +2346,7 @@
       for (let i = 0; i < spineFiles.length; i++) {
         showProgress("Extracting EPUB Chapters...", `Extracting document ${i+1} of ${spineFiles.length}...`);
         const htmlText = await spineFiles[i].async('string');
-        const fileBlocks = parseHtmlStructureToBlocks(htmlText);
+        const fileBlocks = await parseHtmlStructureToBlocks(htmlText, zip, spineFiles[i].name);
         blocks = blocks.concat(fileBlocks);
       }
       
@@ -1854,6 +2365,51 @@
         }
       }
       return result.join('/');
+    }
+
+    function resolveImgPath(basePath, relativePath) {
+      const baseDir = basePath.substring(0, basePath.lastIndexOf('/') + 1);
+      const absolutePath = baseDir + relativePath;
+      
+      const parts = absolutePath.split('/');
+      const result = [];
+      for (const part of parts) {
+        if (part === '.' || part === '') continue;
+        if (part === '..') {
+          result.pop();
+        } else {
+          result.push(part);
+        }
+      }
+      return result.join('/');
+    }
+
+    async function resolveAndReplaceImgSrc(imgNode, zip, currentFilePath) {
+      let src = imgNode.getAttribute('src');
+      if (!src || src.startsWith('data:')) return;
+      
+      const resolvedPath = resolveImgPath(currentFilePath, src);
+      
+      let zipFile = zip.files[resolvedPath];
+      if (!zipFile) {
+        const searchKey = resolvedPath.toLowerCase();
+        const foundName = Object.keys(zip.files).find(name => name.toLowerCase() === searchKey || name.toLowerCase().endsWith('/' + searchKey));
+        if (foundName) {
+          zipFile = zip.files[foundName];
+        }
+      }
+      
+      if (zipFile) {
+        try {
+          const blob = await zipFile.async('blob');
+          const objectUrl = URL.createObjectURL(blob);
+          imgNode.setAttribute('src', objectUrl);
+        } catch (e) {
+          console.warn("Failed to extract image from zip:", resolvedPath, e);
+        }
+      } else {
+        console.warn("Image file not found in zip:", resolvedPath);
+      }
     }
 
     // Text parser
@@ -1893,42 +2449,177 @@
       return blocks;
     }
 
-    function parseHtmlStructureToBlocks(htmlContent) {
+    async function parseHtmlStructureToBlocks(htmlContent, epubZip = null, currentFilePath = '') {
       const parser = new DOMParser();
-      const doc = parser.parseFromString(htmlContent, 'text/html');
-      const body = doc.body;
+      // Use XHTML parsing for XHTML documents inside EPUB
+      const isXml = htmlContent.includes('<?xml') || currentFilePath.endsWith('.xhtml');
+      const doc = parser.parseFromString(htmlContent, isXml ? 'application/xhtml+xml' : 'text/html');
+      const body = doc.body || doc.documentElement;
       let blocks = [];
       if (!body) return blocks;
-      
-      const walker = document.createTreeWalker(body, NodeFilter.SHOW_ELEMENT, null, false);
-      let node;
-      while (node = walker.nextNode()) {
+
+      function isBlockElement(node) {
+        if (node.nodeType !== Node.ELEMENT_NODE) return false;
         const tagName = node.tagName.toLowerCase();
+        const blockTags = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'table', 'figure', 'img', 'svg', 'blockquote', 'pre', 'ul', 'ol', 'p', 'aside', 'math'];
+        if (blockTags.includes(tagName)) return true;
+        
+        if (node.classList.contains('math') || 
+            node.classList.contains('equation') || 
+            node.classList.contains('formula') || 
+            node.classList.contains('diagram') ||
+            node.classList.contains('table-wrapper')) {
+          return true;
+        }
+        return false;
+      }
+
+      function isStructuralContainer(node) {
+        if (node.nodeType !== Node.ELEMENT_NODE) return false;
+        const tagName = node.tagName.toLowerCase();
+        const containerTags = ['div', 'section', 'article', 'header', 'footer', 'nav', 'main', 'body', 'form'];
+        return containerTags.includes(tagName);
+      }
+
+      async function packageInlineNodes(nodes) {
+        if (nodes.length === 0) return;
+        
+        const temp = document.createElement('div');
+        for (const n of nodes) {
+          temp.appendChild(n.cloneNode(true));
+        }
+        
+        const textContent = temp.textContent.trim();
+        
+        if (textContent || temp.querySelector('img') || temp.querySelector('svg') || temp.querySelector('math')) {
+          if (epubZip) {
+            const imgs = temp.querySelectorAll('img');
+            for (const img of imgs) {
+              await resolveAndReplaceImgSrc(img, epubZip, currentFilePath);
+            }
+          }
+          
+          blocks.push({
+            type: "paragraph",
+            html: temp.innerHTML,
+            text: temp.textContent.trim()
+          });
+        }
+      }
+
+      async function processBlockElement(node) {
+        const tagName = node.tagName.toLowerCase();
+        
+        if (epubZip) {
+          const imgs = node.querySelectorAll('img');
+          for (const img of imgs) {
+            await resolveAndReplaceImgSrc(img, epubZip, currentFilePath);
+          }
+          if (tagName === 'img') {
+            await resolveAndReplaceImgSrc(node, epubZip, currentFilePath);
+          }
+        }
+        
         if (/^h[1-6]$/.test(tagName)) {
           blocks.push({
             type: "heading",
             level: parseInt(tagName[1]),
+            html: node.innerHTML,
+            text: node.textContent.trim()
+          });
+        } else if (tagName === 'table') {
+          blocks.push({
+            type: "table",
+            html: node.outerHTML,
+            text: node.textContent.trim()
+          });
+        } else if (tagName === 'img') {
+          blocks.push({
+            type: "image",
+            src: node.getAttribute('src'),
+            alt: node.getAttribute('alt') || 'Embedded Image',
+            text: node.getAttribute('alt') || 'Embedded Image'
+          });
+        } else if (tagName === 'svg') {
+          blocks.push({
+            type: "svg",
+            html: node.outerHTML,
+            text: "[Vector Graphic]"
+          });
+        } else if (tagName === 'math' || node.classList.contains('math') || node.classList.contains('equation') || node.classList.contains('formula')) {
+          blocks.push({
+            type: "formula",
+            html: node.outerHTML,
+            text: node.textContent.trim() || "[Math Formula]"
+          });
+        } else if (tagName === 'blockquote') {
+          blocks.push({
+            type: "blockquote",
+            html: node.innerHTML,
+            text: node.textContent.trim()
+          });
+        } else if (tagName === 'pre') {
+          blocks.push({
+            type: "pre",
+            html: node.outerHTML,
+            text: node.textContent.trim()
+          });
+        } else if (tagName === 'ul' || tagName === 'ol') {
+          blocks.push({
+            type: "list",
+            html: node.outerHTML,
+            text: node.textContent.trim()
+          });
+        } else if (tagName === 'figure') {
+          blocks.push({
+            type: "figure",
+            html: node.outerHTML,
+            text: node.textContent.trim()
+          });
+        } else if (tagName === 'aside') {
+          blocks.push({
+            type: "aside",
+            html: node.innerHTML,
             text: node.textContent.trim()
           });
         } else if (tagName === 'p') {
-          const txt = node.textContent.trim();
-          if (txt) {
-            blocks.push({
-              type: "paragraph",
-              text: txt
-            });
-          }
-        } else if (tagName === 'li') {
-          const txt = node.textContent.trim();
-          if (txt) {
-            blocks.push({
-              type: "list-item",
-              marker: "•",
-              text: txt
-            });
-          }
+          blocks.push({
+            type: "paragraph",
+            html: node.innerHTML,
+            text: node.textContent.trim()
+          });
+        } else {
+          blocks.push({
+            type: "paragraph",
+            html: node.outerHTML,
+            text: node.textContent.trim()
+          });
         }
       }
+
+      async function walkChildren(parentNode) {
+        let accumulatedNodes = [];
+        
+        for (let i = 0; i < parentNode.childNodes.length; i++) {
+          const child = parentNode.childNodes[i];
+          
+          if (isBlockElement(child)) {
+            await packageInlineNodes(accumulatedNodes);
+            accumulatedNodes = [];
+            await processBlockElement(child);
+          } else if (isStructuralContainer(child)) {
+            await packageInlineNodes(accumulatedNodes);
+            accumulatedNodes = [];
+            await walkChildren(child);
+          } else {
+            accumulatedNodes.push(child);
+          }
+        }
+        
+        await packageInlineNodes(accumulatedNodes);
+      }
+
+      await walkChildren(body);
       return blocks;
     }
 
@@ -2020,7 +2711,7 @@
             inList = false;
           }
           const slug = `heading-${headingIndex}`;
-          contentHtml += `<h${b.level} id="${slug}" class="reader-heading h${b.level}">${formatTextWithRefs(escapeHtml(b.text))}</h${b.level}>\n`;
+          contentHtml += `<h${b.level} id="${slug}" class="reader-heading h${b.level}">${formatTextWithRefs(b.html || escapeHtml(b.text))}</h${b.level}>\n`;
           headingIndex++;
         } else if (b.type === "list-item") {
           const currentType = /^\d/.test(b.marker) ? "ol" : "ul";
@@ -2029,13 +2720,71 @@
             listType = currentType;
             contentHtml += `<${listType} class="reader-list">\n`;
           }
-          contentHtml += `  <li>${formatTextWithRefs(escapeHtml(b.text))}</li>\n`;
+          contentHtml += `  <li>${formatTextWithRefs(b.html || escapeHtml(b.text))}</li>\n`;
         } else if (b.type === "paragraph") {
           if (inList) {
             contentHtml += `</${listType}>\n`;
             inList = false;
           }
-          contentHtml += `<p class="reader-paragraph">${formatTextWithRefs(escapeHtml(b.text))}</p>\n`;
+          contentHtml += `<p class="reader-paragraph">${formatTextWithRefs(b.html || escapeHtml(b.text))}</p>\n`;
+        } else if (b.type === "table") {
+          if (inList) {
+            contentHtml += `</${listType}>\n`;
+            inList = false;
+          }
+          contentHtml += `<div class="reader-table-container">${b.html}</div>\n`;
+        } else if (b.type === "image") {
+          if (inList) {
+            contentHtml += `</${listType}>\n`;
+            inList = false;
+          }
+          contentHtml += `
+            <div class="reader-image-container">
+              <img src="${b.src}" alt="${escapeHtml(b.alt)}" class="reader-image">
+              ${b.alt ? `<div class="reader-image-caption">${escapeHtml(b.alt)}</div>` : ''}
+            </div>\n`;
+        } else if (b.type === "list") {
+          if (inList) {
+            contentHtml += `</${listType}>\n`;
+            inList = false;
+          }
+          contentHtml += `<div class="reader-list-container">${formatTextWithRefs(b.html)}</div>\n`;
+        } else if (b.type === "blockquote") {
+          if (inList) {
+            contentHtml += `</${listType}>\n`;
+            inList = false;
+          }
+          contentHtml += `<blockquote class="reader-blockquote">${formatTextWithRefs(b.html)}</blockquote>\n`;
+        } else if (b.type === "pre") {
+          if (inList) {
+            contentHtml += `</${listType}>\n`;
+            inList = false;
+          }
+          contentHtml += `<div class="reader-code-container">${b.html}</div>\n`;
+        } else if (b.type === "figure") {
+          if (inList) {
+            contentHtml += `</${listType}>\n`;
+            inList = false;
+          }
+          contentHtml += `<div class="reader-figure-container">${b.html}</div>\n`;
+        } else if (b.type === "svg") {
+          if (inList) {
+            contentHtml += `</${listType}>\n`;
+            inList = false;
+          }
+          contentHtml += `<div class="reader-svg-container">${b.html}</div>\n`;
+        } else if (b.type === "formula") {
+          if (inList) {
+            contentHtml += `</${listType}>\n`;
+            inList = false;
+          }
+          contentHtml += `<div class="reader-formula-container">${b.html}</div>\n`;
+        } else if (b.type === "aside") {
+          if (inList) {
+            contentHtml += `</${listType}>\n`;
+            inList = false;
+          }
+          contentHtml += `<aside class="reader-aside">${formatTextWithRefs(b.html)}</aside>\n`;
         }
       }
       if (inList) {
@@ -2207,6 +2956,7 @@
     closeResults.addEventListener('click', () => {
       resultsPanel.style.display = 'none';
       clearHighlights();
+      clearTextLayerHighlights();
     });
     
     searchInput.addEventListener('keydown', (e) => {
@@ -2218,94 +2968,213 @@
     });
     
     function clearHighlights() {
-      const article = document.getElementById('article-content');
-      article.innerHTML = article.innerHTML.replace(/<mark>([^<]*)<\/mark>/gi, '$1');
+      const marks = articleContent.querySelectorAll('mark');
+      marks.forEach(mark => {
+        const textNode = document.createTextNode(mark.textContent);
+        mark.parentNode.replaceChild(textNode, mark);
+      });
+      articleContent.normalize();
+    }
+
+    function highlightElementText(elem, regex) {
+      function traverse(node) {
+        if (node.nodeType === Node.TEXT_NODE) {
+          let text = node.nodeValue;
+          if (regex.test(text)) {
+            const tempSpan = document.createElement('span');
+            const escaped = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            tempSpan.innerHTML = escaped.replace(regex, '<mark>$1</mark>');
+            while (tempSpan.firstChild) {
+              node.parentNode.insertBefore(tempSpan.firstChild, node);
+            }
+            node.parentNode.removeChild(node);
+          }
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+          const tag = node.tagName.toLowerCase();
+          if (tag === 'mark' || ['script', 'style', 'svg', 'math'].includes(tag)) return;
+          Array.from(node.childNodes).forEach(traverse);
+        }
+      }
+      Array.from(elem.childNodes).forEach(traverse);
     }
     
+    let activeSearchQuery = "";
+
     function performSearch(query) {
+      activeSearchQuery = query;
       clearHighlights();
+      clearTextLayerHighlights();
       resultsList.innerHTML = '';
       resultsPanel.style.display = 'flex';
       
-      const escapedQuery = query.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-      const regex = new RegExp('(' + escapedQuery + ')', 'gi');
+      const isPdf = document.querySelectorAll('.pdf-page-wrapper').length > 0;
       
-      const elements = document.querySelectorAll('.reader-paragraph, .reader-heading, .reader-list li');
-      let matches = [];
-      let matchIdx = 0;
-      
-      elements.forEach(elem => {
-        const text = elem.textContent;
-        if (regex.test(text)) {
-          let parentHeading = "Cover Page";
-          let prev = elem.previousElementSibling;
-          while (prev) {
-            if (prev.classList.contains('reader-heading')) {
-              parentHeading = prev.textContent;
-              break;
-            }
-            prev = prev.previousElementSibling;
+      if (isPdf) {
+        let matches = [];
+        const escapedQuery = query.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+        const regex = new RegExp('(' + escapedQuery + ')', 'gi');
+        
+        pdfTextPages.forEach(page => {
+          if (regex.test(page.text)) {
+            matches.push({
+              pageNum: page.pageNum,
+              snippet: page.text
+            });
           }
-          
-          const id = 'search-match-' + matchIdx;
-          elem.setAttribute('data-search-id', id);
-          elem.innerHTML = elem.innerHTML.replace(regex, '<mark>$1</mark>');
-          
-          matches.push({ id, heading: parentHeading, snippet: text, elem });
-          matchIdx++;
-        }
-      });
-      
-      resultsCount.textContent = matches.length;
-      if (matches.length === 0) {
-        resultsList.innerHTML = '<li style="padding:16px;text-align:center;color:var(--text-secondary)">No results found</li>';
-        return;
-      }
-      
-      matches.forEach(m => {
-        const li = document.createElement('li');
-        li.className = 'search-result-item';
-        
-        const queryIdx = m.snippet.toLowerCase().indexOf(query.toLowerCase());
-        let start = Math.max(0, queryIdx - 40);
-        let end = Math.min(m.snippet.length, queryIdx + query.length + 60);
-        let snippetText = m.snippet.substring(start, end);
-        if (start > 0) snippetText = '...' + snippetText;
-        if (end < m.snippet.length) snippetText = snippetText + '...';
-        
-        const snippetHtml = snippetText.replace(regex, '<mark>$1</mark>');
-        li.innerHTML = `
-          <div class="search-result-title">${m.heading}</div>
-          <div class="search-result-snippet">${snippetHtml}</div>
-        `;
-        
-        li.addEventListener('click', () => {
-          m.elem.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          m.elem.style.backgroundColor = 'var(--accent-light)';
-          setTimeout(() => {
-            m.elem.style.backgroundColor = 'transparent';
-            m.elem.style.transition = 'background-color 1s ease';
-          }, 2000);
         });
         
-        resultsList.appendChild(li);
-      });
+        resultsCount.textContent = matches.length;
+        if (matches.length === 0) {
+          resultsList.innerHTML = '<li style="padding:16px;text-align:center;color:var(--text-secondary)">No results found</li>';
+          return;
+        }
+        
+        highlightAllTextLayers(query);
+        
+        matches.forEach(m => {
+          const li = document.createElement('li');
+          li.className = 'search-result-item';
+          
+          const queryIdx = m.snippet.toLowerCase().indexOf(query.toLowerCase());
+          let start = Math.max(0, queryIdx - 40);
+          let end = Math.min(m.snippet.length, queryIdx + query.length + 60);
+          let snippetText = m.snippet.substring(start, end);
+          if (start > 0) snippetText = '...' + snippetText;
+          if (end < m.snippet.length) snippetText = snippetText + '...';
+          
+          const snippetHtml = snippetText.replace(regex, '<mark>$1</mark>');
+          li.innerHTML = `
+            <div class="search-result-title">Page ${m.pageNum}</div>
+            <div class="search-result-snippet">${snippetHtml}</div>
+          `;
+          
+          li.addEventListener('click', () => {
+            const targetElem = document.getElementById(`pdf-page-${m.pageNum}`);
+            if (targetElem) {
+              targetElem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              
+              targetElem.style.outline = '3px solid var(--accent-color)';
+              targetElem.style.outlineOffset = '2px';
+              setTimeout(() => {
+                targetElem.style.outline = 'none';
+                targetElem.style.transition = 'outline 1s ease';
+              }, 2000);
+            }
+          });
+          
+          resultsList.appendChild(li);
+        });
+      } else {
+        const escapedQuery = query.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+        const regex = new RegExp('(' + escapedQuery + ')', 'gi');
+        
+        const elements = document.querySelectorAll(
+          '.reader-paragraph, .reader-heading, .reader-list-container li, .reader-list li, ' +
+          '.reader-table-container td, .reader-table-container th, ' +
+          '.reader-blockquote, .reader-aside, .reader-figure-container figcaption'
+        );
+        let matches = [];
+        let matchIdx = 0;
+        
+        elements.forEach(elem => {
+          const text = elem.textContent;
+          if (regex.test(text)) {
+            let parentHeading = "Cover Page";
+            let prev = elem.previousElementSibling;
+            while (prev) {
+              if (prev.classList.contains('reader-heading')) {
+                parentHeading = prev.textContent;
+                break;
+              }
+              prev = prev.previousElementSibling;
+            }
+            
+            const id = 'search-match-' + matchIdx;
+            elem.setAttribute('data-search-id', id);
+            highlightElementText(elem, regex);
+            
+            matches.push({ id, heading: parentHeading, snippet: text, elem });
+            matchIdx++;
+          }
+        });
+        
+        resultsCount.textContent = matches.length;
+        if (matches.length === 0) {
+          resultsList.innerHTML = '<li style="padding:16px;text-align:center;color:var(--text-secondary)">No results found</li>';
+          return;
+        }
+        
+        matches.forEach(m => {
+          const li = document.createElement('li');
+          li.className = 'search-result-item';
+          
+          const queryIdx = m.snippet.toLowerCase().indexOf(query.toLowerCase());
+          let start = Math.max(0, queryIdx - 40);
+          let end = Math.min(m.snippet.length, queryIdx + query.length + 60);
+          let snippetText = m.snippet.substring(start, end);
+          if (start > 0) snippetText = '...' + snippetText;
+          if (end < m.snippet.length) snippetText = snippetText + '...';
+          
+          const snippetHtml = snippetText.replace(regex, '<mark>$1</mark>');
+          li.innerHTML = `
+            <div class="search-result-title">${m.heading}</div>
+            <div class="search-result-snippet">${snippetHtml}</div>
+          `;
+          
+          li.addEventListener('click', () => {
+            m.elem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            m.elem.style.backgroundColor = 'var(--accent-light)';
+            setTimeout(() => {
+              m.elem.style.backgroundColor = 'transparent';
+              m.elem.style.transition = 'background-color 1s ease';
+            }, 2000);
+          });
+          
+          resultsList.appendChild(li);
+        });
+      }
     }
 
     // ===== SUPERSCRIPT REFERENCE FORMATTER =====
     // Converts trailing superscript numbers and unicode superscripts into <sup> tags
-    function formatTextWithRefs(text) {
-      // Match unicode superscript digits: ⁰¹²³⁴⁵⁶⁷⁸⁹
-      text = text.replace(/([\u2070\u00B9\u00B2\u00B3\u2074-\u2079]+)/g, '<sup class="ref-sup">$1</sup>');
-      // Match trailing digit(s) after a word/punctuation that look like footnote refs (e.g., "word1" or "word.2")
-      text = text.replace(/([a-zA-Z.,:;!?\)\]\&quot;\&#039;])([0-9]{1,3})(?=\s|$|[.,;:!?)])/g, function(match, before, num) {
-        const n = parseInt(num);
-        if (n >= 1 && n <= 200) {
-          return before + '<sup class="ref-sup">' + num + '</sup>';
+    function formatTextWithRefs(htmlContent) {
+      if (!htmlContent) return "";
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(`<div>${htmlContent}</div>`, 'text/html');
+      const container = doc.body.firstChild;
+      
+      function traverse(node) {
+        if (node.nodeType === Node.TEXT_NODE) {
+          let text = node.nodeValue;
+          
+          // Match unicode superscript digits: ⁰¹²³⁴⁵⁶⁷⁸⁹
+          text = text.replace(/([\u2070\u00B9\u00B2\u00B3\u2074-\u2079]+)/g, '<sup class="ref-sup">$1</sup>');
+          
+          // Match trailing digit(s) after a word/punctuation that look like footnote refs (e.g., "word1" or "word.2")
+          text = text.replace(/([a-zA-Z.,:;!?\)\]])([0-9]{1,3})(?=\s|$|[.,;:!?)])/g, function(match, before, num) {
+            const n = parseInt(num);
+            return (n >= 1 && n <= 200) ? before + '<sup class="ref-sup">' + num + '</sup>' : match;
+          });
+          
+          if (text !== node.nodeValue) {
+            const tempSpan = document.createElement('span');
+            tempSpan.innerHTML = text;
+            while (tempSpan.firstChild) {
+              node.parentNode.insertBefore(tempSpan.firstChild, node);
+            }
+            node.parentNode.removeChild(node);
+          }
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+          const tag = node.tagName.toLowerCase();
+          if ((tag === 'sup' && node.classList.contains('ref-sup')) || ['code', 'pre', 'math', 'svg'].includes(tag)) {
+            return;
+          }
+          Array.from(node.childNodes).forEach(traverse);
         }
-        return match;
-      });
-      return text;
+      }
+      
+      Array.from(container.childNodes).forEach(traverse);
+      return container.innerHTML;
     }
 
     // ===== DICTIONARY PANEL =====
